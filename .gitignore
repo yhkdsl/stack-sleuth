@@ -9,7 +9,7 @@
 
 # Local runtime data
 var/
-logs/
+/logs/
 *.log
 examples/traces/local/
 
@@ -40,4 +40,3 @@ test-results/
 .DS_Store
 .idea/
 .vscode/
-
