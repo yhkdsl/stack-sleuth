@@ -85,6 +85,10 @@ public class ToolController {
             status = "rejected";
             rejectionReason = exception.code();
             throw exception;
+        } catch (RuntimeException exception) {
+            status = "failed";
+            rejectionReason = exception.getClass().getSimpleName();
+            throw exception;
         } finally {
             long latencyMs = (System.nanoTime() - startedAt) / 1_000_000;
             auditSink.record(new AuditEvent(context.traceId(), context.requestId(), toolName, status, latencyMs, rejectionReason));

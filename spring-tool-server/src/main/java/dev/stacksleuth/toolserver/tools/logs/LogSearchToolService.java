@@ -6,6 +6,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.List;
+import java.util.stream.Stream;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -23,8 +24,8 @@ public class LogSearchToolService {
             return new LogSearchResponse("log_file_not_configured", request.keyword(), 0, List.of());
         }
 
-        try {
-            List<LogSearchResponse.LogMatch> matches = Files.lines(logPath)
+        try (Stream<String> lines = Files.lines(logPath)) {
+            List<LogSearchResponse.LogMatch> matches = lines
                 .filter(line -> line.contains(request.keyword()))
                 .limit(Math.min(request.limit(), properties.logMaxMatches()))
                 .map(line -> new LogSearchResponse.LogMatch(Instant.now(), inferLevel(line), truncate(line)))
