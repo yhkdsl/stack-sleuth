@@ -79,7 +79,7 @@ public class ToolController {
                 .header("X-Request-Id", context.requestId())
                 .body(body);
         } catch (ToolException exception) {
-            status = "rejected";
+            status = exception.status().is4xxClientError() ? "rejected" : "failed";
             rejectionReason = exception.code();
             throw exception;
         } catch (RuntimeException exception) {

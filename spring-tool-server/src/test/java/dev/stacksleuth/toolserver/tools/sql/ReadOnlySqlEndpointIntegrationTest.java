@@ -1,9 +1,11 @@
 package dev.stacksleuth.toolserver.tools.sql;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import dev.stacksleuth.toolserver.audit.AuditSink;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -38,6 +40,9 @@ class ReadOnlySqlEndpointIntegrationTest {
     @Autowired
     MockMvc mockMvc;
 
+    @Autowired
+    AuditSink auditSink;
+
     @Test
     void endpointExecutesAsRestrictedReaderAccount() throws Exception {
         mockMvc.perform(post("/internal/tools/sql/read-only")
@@ -51,5 +56,24 @@ class ReadOnlySqlEndpointIntegrationTest {
             .andExpect(jsonPath("$.rows[0].id").value(42))
             .andExpect(jsonPath("$.rows[0].account_status").value("active"))
             .andExpect(jsonPath("$.rows[0].profile_img").isEmpty());
+    }
+
+    @Test
+    void databaseExecutionFailureIsAuditedAsFailed() throws Exception {
+        int eventCount = auditSink.events().size();
+
+        mockMvc.perform(post("/internal/tools/sql/read-only")
+                .header("X-Tool-Server-Token", "test-token")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"sql\":\"SELECT * FROM missing_table\"}"))
+            .andExpect(status().isBadGateway())
+            .andExpect(jsonPath("$.code").value("SQL_EXECUTION_FAILED"));
+
+        assertThat(auditSink.events().subList(eventCount, auditSink.events().size()))
+            .singleElement()
+            .satisfies(event -> {
+                assertThat(event.status()).isEqualTo("failed");
+                assertThat(event.rejectionReason()).isEqualTo("SQL_EXECUTION_FAILED");
+            });
     }
 }
