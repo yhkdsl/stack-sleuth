@@ -228,9 +228,21 @@ make down
 
 ## 8. Portfolio and Writing Skills
 
+### Required Communication Skills
+
+- Docs-as-code workflow using branches and pull requests
+- Beginner-oriented tutorial writing
+- Architecture decision and tradeoff explanation
+- Reproducible debugging narratives
+- Minimal, copyable, and safe code examples
+- Screenshot and GIF preparation without secret exposure
+- Korean technical writing with accurate English summaries
+- External publication and feedback tracking
+
 ### Required Artifacts
 
 - README with quickstart
+- Beginner tutorial that starts from a clean clone
 - Architecture diagram
 - Demo GIF
 - Tool trace example
@@ -239,6 +251,9 @@ make down
 - Guardrail failure example
 - Design tradeoff section
 - Blog-style build note
+- Build log containing evidence, root cause, fix, and lesson
+- Runnable examples under `examples/`
+- Five-part article series under `docs/articles/`
 
 ### Writing Angle
 
@@ -259,6 +274,28 @@ The frontend is intentionally a trace and replay dashboard so developers can ins
 ```text
 Building a Safe Tool-Calling AI Agent for Java Spring Backend Operations
 ```
+
+### Planned Article Series
+
+1. `Spring Boot를 AI Agent의 안전한 Tool Server로 만들기`
+2. `LLM이 실행하는 SQL을 이중으로 보호하는 방법`
+3. `OpenAI Function Calling Agent Loop 구현하기`
+4. `Agent의 판단 과정을 React로 시각화하기`
+5. `AI Agent의 timeout, 무한 반복, 개인정보 문제 검증하기`
+
+Repository manuscripts use Korean bodies with English summaries. The canonical files live under `docs/articles/` and are published externally only after the related implementation and verification are complete.
+
+### Content Completion Rule
+
+For every major feature:
+
+- Update `docs/TUTORIAL.md`.
+- Add a safe request, response, or code example.
+- Explain the selected design and a limitation or rejected alternative.
+- Add a `docs/BUILD_LOG.md` entry when the work produced a reusable lesson.
+- Update the related article status and evidence.
+- Capture sanitized visuals for CLI or dashboard behavior.
+- Keep planned and implemented behavior visibly separate.
 
 Frontend-focused companion title:
 

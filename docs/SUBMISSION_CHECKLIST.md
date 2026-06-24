@@ -14,6 +14,20 @@ Use this before linking the project in a resume, application, or recruiter messa
 - [ ] README links to all major docs.
 - [ ] No document claims an unimplemented feature is already complete.
 
+## Developer Experience Content
+
+- [ ] `docs/TUTORIAL.md` works from a clean clone and explains prerequisites.
+- [ ] Tutorial commands include expected behavior and troubleshooting.
+- [ ] `docs/CONTENT_STRATEGY.md` reflects the actual publication status.
+- [ ] `docs/BUILD_LOG.md` contains evidence-based problem-solving entries.
+- [ ] `examples/` contains safe, copyable requests and trace samples.
+- [ ] Architecture decisions explain why the selected boundaries were chosen.
+- [ ] At least one article explains a failure path, not only the happy path.
+- [ ] Korean manuscripts contain accurate English summaries.
+- [ ] Implemented articles link to relevant source files, issues, and pull requests.
+- [ ] Planned articles are visibly labeled as planned.
+- [ ] Published external URLs are linked back to their repository manuscripts.
+
 ## Backend
 
 - [ ] Spring Boot tool server has health, log search, and read-only SQL tools.
@@ -68,6 +82,16 @@ Use this before linking the project in a resume, application, or recruiter messa
 - [ ] Dashboard opens the returned trace.
 - [ ] Sample replay works without API key.
 - [ ] Demo recording does not expose secrets.
+- [ ] Screenshots and GIFs do not expose `.env`, terminal history, account names, or unrelated applications.
+
+## Public Writing Evidence
+
+- [ ] Article 01: safe Spring tool server is published or submission-ready.
+- [ ] Article 02: defense-in-depth SQL safety is published or submission-ready.
+- [ ] Article 03: OpenAI function-calling agent loop is published or submission-ready.
+- [ ] Article 04: React trace dashboard is published or submission-ready.
+- [ ] Article 05: failure modes and evals is published or submission-ready.
+- [ ] Resume links directly to the strongest tutorial, architecture article, and demo.
 
 ## Application Positioning
 
