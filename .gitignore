@@ -9,8 +9,9 @@
 
 # Local runtime data
 var/
-logs/
+/logs/
 *.log
+!infra/sample-logs/*.log
 examples/traces/local/
 
 # Java / Spring
@@ -40,4 +41,3 @@ test-results/
 .DS_Store
 .idea/
 .vscode/
-

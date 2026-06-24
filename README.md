@@ -8,7 +8,7 @@ The project concept is simple: a developer types an operations question in a ter
 
 **One-line pitch:** An agentic ops copilot for backend tool calling.
 
-**Current status:** Planning complete, MVP implementation not started.
+**Current status:** MVP implementation in progress. The Spring Boot tool server scaffold is implemented; the Python agent service, CLI, dashboard, and demo data are still planned.
 
 **What this demonstrates:**
 
@@ -52,13 +52,40 @@ Expected result:
 
 | Area | Status |
 | --- | --- |
-| Product brief | Planned |
-| Architecture | Planned |
-| Spring Boot tool server | Not started |
+| Product brief | Documented |
+| Architecture | Documented |
+| Spring Boot tool server | Initial implementation complete: internal auth, health tool, log-search endpoint, SQL read-only guardrails, audit sink, and tests |
 | Python FastAPI agent service | Not started |
 | CLI | Not started |
 | React/Next.js trace dashboard | Not started |
 | Demo assets | Not started |
+
+## Spring Tool Server
+
+The Spring Boot tool server lives in `spring-tool-server`.
+
+Run the server tests:
+
+```bash
+./gradlew :spring-tool-server:test
+```
+
+Run the server locally:
+
+```bash
+TOOL_SERVER_TOKEN=local-dev-token ./gradlew :spring-tool-server:bootRun
+```
+
+Check the health tool:
+
+```bash
+curl -X POST http://localhost:8080/internal/tools/health \
+  -H 'Content-Type: application/json' \
+  -H 'X-Tool-Server-Token: local-dev-token' \
+  -d '{"includeJvm":true,"includeDbPool":true}'
+```
+
+The SQL endpoint currently enforces parser-based read-only guardrails and returns a structured `database_not_configured` response until the PostgreSQL demo data work lands.
 
 ## Intended Audience
 
