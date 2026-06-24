@@ -11,6 +11,7 @@
 var/
 /logs/
 *.log
+!infra/sample-logs/*.log
 examples/traces/local/
 
 # Java / Spring

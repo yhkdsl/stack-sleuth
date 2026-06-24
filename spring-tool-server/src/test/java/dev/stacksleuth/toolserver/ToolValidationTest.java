@@ -59,4 +59,54 @@ class ToolValidationTest {
             .andExpect(status().isBadRequest())
             .andExpect(jsonPath("$.code").value("SQL_MULTI_STATEMENT_BLOCKED"));
     }
+
+    @Test
+    void blocksSelectInto() throws Exception {
+        mockMvc.perform(post("/internal/tools/sql/read-only")
+                .header("X-Tool-Server-Token", "test-token")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"sql\":\"SELECT * INTO backup_users FROM users\"}"))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.code").value("SQL_WRITE_BLOCKED"));
+    }
+
+    @Test
+    void blocksDataModifyingCte() throws Exception {
+        mockMvc.perform(post("/internal/tools/sql/read-only")
+                .header("X-Tool-Server-Token", "test-token")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"sql\":\"WITH deleted AS (DELETE FROM users RETURNING *) SELECT * FROM deleted\"}"))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.code").value("SQL_WRITE_BLOCKED"));
+    }
+
+    @Test
+    void blocksSelectForUpdate() throws Exception {
+        mockMvc.perform(post("/internal/tools/sql/read-only")
+                .header("X-Tool-Server-Token", "test-token")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"sql\":\"SELECT id FROM users FOR UPDATE\"}"))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.code").value("SQL_LOCK_BLOCKED"));
+    }
+
+    @Test
+    void blocksLockingSelectInsideFromSubquery() throws Exception {
+        mockMvc.perform(post("/internal/tools/sql/read-only")
+                .header("X-Tool-Server-Token", "test-token")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"sql\":\"SELECT * FROM (SELECT id FROM users FOR UPDATE) locked_users\"}"))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.code").value("SQL_LOCK_BLOCKED"));
+    }
+
+    @Test
+    void returnsStructuredErrorForMalformedJson() throws Exception {
+        mockMvc.perform(post("/internal/tools/health")
+                .header("X-Tool-Server-Token", "test-token")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"includeJvm\":"))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.code").value("MALFORMED_JSON"));
+    }
 }

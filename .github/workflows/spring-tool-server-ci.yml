@@ -1,0 +1,38 @@
+name: Spring Tool Server CI
+
+on:
+  pull_request:
+    paths:
+      - "spring-tool-server/**"
+      - "build.gradle"
+      - "settings.gradle"
+      - "gradle/**"
+      - "gradlew"
+      - ".github/workflows/spring-tool-server-ci.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "spring-tool-server/**"
+      - "build.gradle"
+      - "settings.gradle"
+      - "gradle/**"
+      - "gradlew"
+      - ".github/workflows/spring-tool-server-ci.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: gradle
+      - name: Run Spring tool server tests
+        run: ./gradlew :spring-tool-server:cleanTest :spring-tool-server:test --no-daemon

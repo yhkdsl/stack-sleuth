@@ -1,11 +1,12 @@
 server:
+  address: ${TOOL_SERVER_BIND_ADDRESS:127.0.0.1}
   port: 8080
 
 management:
   endpoints:
     web:
       exposure:
-        include: health
+        exclude: "*"
 
 stacksleuth:
   tool-server:
@@ -13,4 +14,5 @@ stacksleuth:
     token: ${TOOL_SERVER_TOKEN:local-dev-token}
     sql-max-rows: ${SQL_MAX_ROWS:50}
     log-max-matches: ${LOG_MAX_MATCHES:100}
-    sample-log-path: ${SAMPLE_LOG_PATH:infra/sample-logs/app.log}
+    audit-max-events: ${AUDIT_MAX_EVENTS:1000}
+    sample-log-path: ${SAMPLE_LOG_PATH:../infra/sample-logs/app.log}

@@ -13,12 +13,12 @@ import dev.stacksleuth.toolserver.tools.logs.LogSearchToolService;
 import dev.stacksleuth.toolserver.tools.sql.ReadOnlySqlRequest;
 import dev.stacksleuth.toolserver.tools.sql.ReadOnlySqlResponse;
 import dev.stacksleuth.toolserver.tools.sql.ReadOnlySqlToolService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import java.util.function.Supplier;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -46,32 +46,29 @@ public class ToolController {
     @PostMapping("/health")
     ResponseEntity<HealthResponse> health(
         @Valid @RequestBody HealthRequest request,
-        @RequestHeader(value = "X-Trace-Id", required = false) String traceId,
-        @RequestHeader(value = "X-Request-Id", required = false) String requestId
+        HttpServletRequest servletRequest
     ) {
-        return execute("check_server_health", traceId, requestId, () -> healthToolService.check(request));
+        return execute("check_server_health", servletRequest, () -> healthToolService.check(request));
     }
 
     @PostMapping("/logs/search")
     ResponseEntity<LogSearchResponse> searchLogs(
         @Valid @RequestBody LogSearchRequest request,
-        @RequestHeader(value = "X-Trace-Id", required = false) String traceId,
-        @RequestHeader(value = "X-Request-Id", required = false) String requestId
+        HttpServletRequest servletRequest
     ) {
-        return execute("search_error_logs", traceId, requestId, () -> logSearchToolService.search(request));
+        return execute("search_error_logs", servletRequest, () -> logSearchToolService.search(request));
     }
 
     @PostMapping("/sql/read-only")
     ResponseEntity<ReadOnlySqlResponse> readOnlySql(
         @Valid @RequestBody ReadOnlySqlRequest request,
-        @RequestHeader(value = "X-Trace-Id", required = false) String traceId,
-        @RequestHeader(value = "X-Request-Id", required = false) String requestId
+        HttpServletRequest servletRequest
     ) {
-        return execute("run_read_only_query", traceId, requestId, () -> readOnlySqlToolService.run(request));
+        return execute("run_read_only_query", servletRequest, () -> readOnlySqlToolService.run(request));
     }
 
-    private <T> ResponseEntity<T> execute(String toolName, String traceId, String requestId, Supplier<T> supplier) {
-        ToolRequestContext context = ToolRequestContext.fromHeaders(traceId, requestId);
+    private <T> ResponseEntity<T> execute(String toolName, HttpServletRequest request, Supplier<T> supplier) {
+        ToolRequestContext context = ToolRequestContext.fromRequest(request);
         long startedAt = System.nanoTime();
         String status = "success";
         String rejectionReason = null;

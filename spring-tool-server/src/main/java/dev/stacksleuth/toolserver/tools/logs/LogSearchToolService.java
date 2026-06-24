@@ -4,8 +4,10 @@ import dev.stacksleuth.toolserver.config.ToolServerProperties;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Clock;
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Stream;
 import org.springframework.stereotype.Service;
 
@@ -13,9 +15,11 @@ import org.springframework.stereotype.Service;
 public class LogSearchToolService {
 
     private final ToolServerProperties properties;
+    private final Clock clock;
 
-    public LogSearchToolService(ToolServerProperties properties) {
+    public LogSearchToolService(ToolServerProperties properties, Clock clock) {
         this.properties = properties;
+        this.clock = clock;
     }
 
     public LogSearchResponse search(LogSearchRequest request) {
@@ -24,11 +28,14 @@ public class LogSearchToolService {
             return new LogSearchResponse("log_file_not_configured", request.keyword(), 0, List.of());
         }
 
+        Instant cutoff = clock.instant().minusSeconds(request.sinceMinutes() * 60L);
         try (Stream<String> lines = Files.lines(logPath)) {
             List<LogSearchResponse.LogMatch> matches = lines
-                .filter(line -> line.contains(request.keyword()))
+                .map(LogSearchToolService::parseLine)
+                .flatMap(Optional::stream)
+                .filter(match -> !match.timestamp().isBefore(cutoff))
+                .filter(match -> match.message().contains(request.keyword()) || match.level().contains(request.keyword()))
                 .limit(Math.min(request.limit(), properties.logMaxMatches()))
-                .map(line -> new LogSearchResponse.LogMatch(Instant.now(), inferLevel(line), truncate(line)))
                 .toList();
             return new LogSearchResponse("ok", request.keyword(), matches.size(), matches);
         } catch (IOException exception) {
@@ -36,20 +43,27 @@ public class LogSearchToolService {
         }
     }
 
-    private static String inferLevel(String line) {
-        if (line.contains("ERROR")) {
-            return "ERROR";
+    private static Optional<LogSearchResponse.LogMatch> parseLine(String line) {
+        String[] parts = line.strip().split("\\s+", 3);
+        if (parts.length < 3) {
+            return Optional.empty();
         }
-        if (line.contains("WARN")) {
-            return "WARN";
+
+        try {
+            return Optional.of(new LogSearchResponse.LogMatch(
+                Instant.parse(parts[0]),
+                parts[1],
+                truncate(parts[2])
+            ));
+        } catch (RuntimeException exception) {
+            return Optional.empty();
         }
-        return "INFO";
     }
 
-    private static String truncate(String line) {
-        if (line.length() <= 500) {
-            return line;
+    private static String truncate(String message) {
+        if (message.length() <= 500) {
+            return message;
         }
-        return line.substring(0, 500);
+        return message.substring(0, 500);
     }
 }

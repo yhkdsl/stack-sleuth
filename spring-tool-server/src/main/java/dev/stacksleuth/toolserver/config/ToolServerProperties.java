@@ -12,6 +12,7 @@ public record ToolServerProperties(
     @NotBlank String token,
     @Min(1) int sqlMaxRows,
     @Min(1) int logMaxMatches,
+    @Min(1) int auditMaxEvents,
     String sampleLogPath
 ) {
 
@@ -25,8 +26,11 @@ public record ToolServerProperties(
         if (logMaxMatches <= 0) {
             logMaxMatches = 100;
         }
+        if (auditMaxEvents <= 0) {
+            auditMaxEvents = 1000;
+        }
         if (sampleLogPath == null || sampleLogPath.isBlank()) {
-            sampleLogPath = "infra/sample-logs/app.log";
+            sampleLogPath = "../infra/sample-logs/app.log";
         }
     }
 }
