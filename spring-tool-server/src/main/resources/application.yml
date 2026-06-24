@@ -16,3 +16,9 @@ stacksleuth:
     log-max-matches: ${LOG_MAX_MATCHES:100}
     audit-max-events: ${AUDIT_MAX_EVENTS:1000}
     sample-log-path: ${SAMPLE_LOG_PATH:../infra/sample-logs/app.log}
+    clock-instant: ${TOOL_SERVER_CLOCK_INSTANT:}
+    database:
+      enabled: ${TOOL_DB_ENABLED:false}
+      url: ${TOOL_DB_URL:}
+      username: ${TOOL_DB_USER:}
+      password: ${TOOL_DB_PASSWORD:}

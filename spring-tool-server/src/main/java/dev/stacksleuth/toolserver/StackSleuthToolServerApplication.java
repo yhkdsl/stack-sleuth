@@ -2,10 +2,13 @@ package dev.stacksleuth.toolserver;
 
 import dev.stacksleuth.toolserver.config.ToolServerProperties;
 import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneOffset;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 
 @SpringBootApplication(exclude = DataSourceAutoConfiguration.class)
@@ -17,7 +20,10 @@ public class StackSleuthToolServerApplication {
     }
 
     @Bean
-    Clock systemClock() {
-        return Clock.systemUTC();
+    Clock toolServerClock(@Value("${stacksleuth.tool-server.clock-instant:}") String clockInstant) {
+        if (clockInstant == null || clockInstant.isBlank()) {
+            return Clock.systemUTC();
+        }
+        return Clock.fixed(Instant.parse(clockInstant), ZoneOffset.UTC);
     }
 }

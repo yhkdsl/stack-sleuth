@@ -8,7 +8,7 @@ The project concept is simple: a developer types an operations question in a ter
 
 **One-line pitch:** An agentic ops copilot for backend tool calling.
 
-**Current status:** MVP implementation in progress. The Spring Boot tool server scaffold is implemented; the Python agent service, CLI, dashboard, and demo data are still planned.
+**Current status:** MVP implementation in progress. The Spring Boot tool server and deterministic PostgreSQL demo data are implemented; the Python agent service, CLI, and dashboard are still planned.
 
 **What this demonstrates:**
 
@@ -54,11 +54,12 @@ Expected result:
 | --- | --- |
 | Product brief | Documented |
 | Architecture | Documented |
-| Spring Boot tool server | Initial implementation complete: internal auth, health tool, log-search endpoint, SQL read-only guardrails, audit sink, and tests |
+| Spring Boot tool server | Initial implementation complete: internal auth, health tool, log-search endpoint, database-backed read-only SQL, audit sink, and tests |
+| PostgreSQL demo data | Implemented: Docker Compose, deterministic fixtures, correlated sample logs, and database-enforced read-only role |
 | Python FastAPI agent service | Not started |
 | CLI | Not started |
 | React/Next.js trace dashboard | Not started |
-| Demo assets | Not started |
+| Demo recording and trace-replay assets | Not started |
 
 ## Spring Tool Server
 
@@ -70,11 +71,24 @@ Run the server tests:
 ./gradlew :spring-tool-server:test
 ```
 
-Run the server locally:
+Create a local `.env`, set both database passwords, and start PostgreSQL:
 
 ```bash
-TOOL_SERVER_TOKEN=local-dev-token ./gradlew :spring-tool-server:bootRun
+cp .env.example .env
+docker compose --env-file .env -f infra/docker-compose.yml up -d --wait
+set -a
+source .env
+set +a
+infra/scripts/verify-postgres.sh
 ```
+
+Run the server locally with the same environment loaded:
+
+```bash
+./gradlew :spring-tool-server:bootRun
+```
+
+The example `.env` fixes the tool-server clock at `2026-06-24T03:00:00Z` so the checked-in incident remains inside a deterministic 60-minute demo window. Clear `TOOL_SERVER_CLOCK_INSTANT` to use the real UTC clock.
 
 Check the health tool:
 
@@ -85,7 +99,16 @@ curl -X POST http://localhost:8080/internal/tools/health \
   -d '{"includeJvm":true,"includeDbPool":true}'
 ```
 
-The SQL endpoint currently enforces parser-based read-only guardrails and returns a structured `database_not_configured` response until the PostgreSQL demo data work lands.
+The SQL endpoint applies parser-based read-only guardrails before executing through the restricted `TOOL_DB_USER` account. If `TOOL_DB_ENABLED` is false, it returns a structured `database_not_configured` response without attempting a connection.
+
+Verify the seeded null-profile incident:
+
+```bash
+curl -X POST http://localhost:8080/internal/tools/sql/read-only \
+  -H 'Content-Type: application/json' \
+  -H "X-Tool-Server-Token: ${TOOL_SERVER_TOKEN}" \
+  -d '{"sql":"SELECT id, account_status, profile_img FROM users WHERE id = 42"}'
+```
 
 ## Intended Audience
 

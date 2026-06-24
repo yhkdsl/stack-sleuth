@@ -173,12 +173,18 @@ Tests:
 
 **Target outcome:** The demo produces deterministic investigation results.
 
-Create:
+**Status:** Implemented for the MVP fixture set.
+
+Implemented:
 
 ```text
 infra/docker-compose.yml
-infra/postgres/init.sql
+infra/postgres/init/001-schema.sql
+infra/postgres/init/002-seed.sql
+infra/postgres/init/003-read-only-role.sh
 infra/sample-logs/app.log
+infra/scripts/verify-fixtures.sh
+infra/scripts/verify-postgres.sh
 ```
 
 Sample tables:
@@ -197,7 +203,12 @@ Seed scenarios:
 Validation:
 
 ```bash
-docker compose -f infra/docker-compose.yml up
+cp .env.example .env
+# Set POSTGRES_PASSWORD and TOOL_DB_PASSWORD in .env.
+docker compose --env-file .env -f infra/docker-compose.yml up -d --wait
+set -a && source .env && set +a
+infra/scripts/verify-fixtures.sh
+infra/scripts/verify-postgres.sh
 curl -X POST http://localhost:8080/internal/tools/sql/read-only \
   -H 'Content-Type: application/json' \
   -H "X-Tool-Server-Token: ${TOOL_SERVER_TOKEN:-local-dev-token}" \
