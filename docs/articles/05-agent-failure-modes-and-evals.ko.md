@@ -1,8 +1,8 @@
 # AI Agent의 timeout, 무한 반복, 개인정보 문제 검증하기
 
-**Publication status:** Planned until Issue #6 is implemented and verified  
-**Related implementation:** Agent evals, redaction, and failure-mode tests  
-**External URL:** Not published
+- **Publication status:** Planned until Issue #6 is implemented and verified
+- **Related implementation:** Agent evals, redaction, and failure-mode tests
+- **External URL:** Not published
 
 **Tracking issue:** [Issue #6](https://github.com/yhkdsl/stack-sleuth/issues/6)
 

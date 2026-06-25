@@ -64,9 +64,8 @@ Documentation updated:
 
 **Decision:** Classify `4xx` tool exceptions as `rejected` and server-side tool exceptions as `failed`.
 
-**Verification:** The new integration test first failed against the original behavior, then passed after the minimal classification change. The full Spring suite passed with 26 tests and zero failures.
+**Verification:** The new integration test first failed against the original behavior, then passed after the minimal classification change. The Spring suite had 26 passing tests at that commit; subsequent Health API coverage increased the current suite to 29.
 
 **Lesson for readers:** Observability terminology is part of the product contract. A policy decision and an infrastructure failure demand different operator responses.
 
 **Documentation updated:** This build log; the trace-dashboard article will reuse this distinction when its UI is implemented.
-

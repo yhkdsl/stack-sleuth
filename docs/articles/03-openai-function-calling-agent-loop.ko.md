@@ -1,8 +1,8 @@
 # OpenAI Function Calling Agent Loop 구현하기
 
-**Publication status:** Planned until Issue #3 is implemented and verified  
-**Related implementation:** Python FastAPI agent service  
-**External URL:** Not published
+- **Publication status:** Planned until Issue #3 is implemented and verified
+- **Related implementation:** Python FastAPI agent service
+- **External URL:** Not published
 
 **Tracking issue:** [Issue #3](https://github.com/yhkdsl/stack-sleuth/issues/3)
 

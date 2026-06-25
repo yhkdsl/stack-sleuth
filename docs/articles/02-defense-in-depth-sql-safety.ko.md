@@ -1,8 +1,8 @@
 # LLM이 실행하는 SQL을 이중으로 보호하는 방법
 
-**Publication status:** Draft  
-**Related implementation:** SQL guardrail and PostgreSQL demo data, Issues #1 and #2  
-**External URL:** Not published
+- **Publication status:** Draft
+- **Related implementation:** SQL guardrail and PostgreSQL demo data, Issues #1 and #2
+- **External URL:** Not published
 
 ## English Summary
 
@@ -27,6 +27,14 @@ StackSleuth는 두 개의 독립적인 경계를 둔다.
 - 최상위 문장은 `SELECT`여야 한다.
 - 주석, locking select, `SELECT INTO`, 데이터 변경 CTE를 차단한다.
 - 서버가 결과 행 제한을 강제한다.
+
+정상적인 조사 쿼리는 제한된 reader 계정으로 실행할 수 있다.
+
+```bash
+TOOL_SERVER_TOKEN=local-dev-token examples/curl/read-only-query.sh
+```
+
+이 예제는 `user_id=42`의 상태와 nullable profile image를 조회하며 HTTP `200`과 한 개의 synthetic row를 기대한다.
 
 위험한 요청 예제:
 

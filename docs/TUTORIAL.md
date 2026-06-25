@@ -45,7 +45,7 @@ This verifies internal authentication, request validation, SQL guardrails, log s
 
 ## 3. Start the Deterministic PostgreSQL Demo
 
-This section becomes available after the PostgreSQL demo-data pull request is merged.
+The PostgreSQL demo is implemented with deterministic fixtures and a database-enforced read-only tool account.
 
 ```bash
 docker compose --env-file .env -f infra/docker-compose.yml up -d --wait
@@ -76,16 +76,14 @@ curl -X POST http://localhost:8080/internal/tools/health \
   -d '{"includeJvm":true,"includeDbPool":true}'
 ```
 
-Try a destructive query to observe the policy boundary:
+Run a successful investigation query, then observe the destructive-query policy boundary:
 
 ```bash
-curl -X POST http://localhost:8080/internal/tools/sql/read-only \
-  -H 'Content-Type: application/json' \
-  -H "X-Tool-Server-Token: ${TOOL_SERVER_TOKEN}" \
-  -d '{"sql":"DROP TABLE users"}'
+examples/curl/read-only-query.sh
+examples/curl/rejected-sql.sh
 ```
 
-Expected behavior: HTTP `400` with a structured `SQL_WRITE_BLOCKED` error. The database must remain unchanged.
+The first request returns the synthetic `user_id=42` incident row through the restricted database account. The second returns HTTP `400` with a structured `SQL_WRITE_BLOCKED` error. The database remains unchanged.
 
 ## 5. Run a Live Agent Investigation
 
@@ -144,4 +142,3 @@ Check the implementation status in `README.md` and the relevant GitHub issue. Pl
 - [Build Log](BUILD_LOG.md)
 - [Demo Script](DEMO_SCRIPT.md)
 - [Article Series](articles/README.md)
-

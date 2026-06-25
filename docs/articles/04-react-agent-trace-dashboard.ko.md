@@ -1,8 +1,8 @@
 # Agent의 판단 과정을 React로 시각화하기
 
-**Publication status:** Planned until Issue #5 is implemented and visually verified  
-**Related implementation:** React trace and replay dashboard  
-**External URL:** Not published
+- **Publication status:** Planned until Issue #5 is implemented and visually verified
+- **Related implementation:** React trace and replay dashboard
+- **External URL:** Not published
 
 **Tracking issue:** [Issue #5](https://github.com/yhkdsl/stack-sleuth/issues/5)
 

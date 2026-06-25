@@ -1,8 +1,8 @@
 # Spring Boot를 AI Agent의 안전한 Tool Server로 만들기
 
-**Publication status:** Draft  
-**Related implementation:** Spring Boot tool server, Issue #1  
-**External URL:** Not published
+- **Publication status:** Draft
+- **Related implementation:** Spring Boot tool server, Issues #1 and #2
+- **External URL:** Not published
 
 ## English Summary
 
@@ -78,7 +78,7 @@ curl -X POST http://localhost:8080/internal/tools/health \
 ## 현재 한계
 
 - 공유 토큰은 로컬 MVP 경계이며 운영 환경에서는 서비스 identity 또는 mTLS 같은 강한 인증이 필요하다.
-- health 도구의 DB 상태는 설정 여부와 실제 연결 가능성을 구분해야 한다.
+- health 도구는 DB 미설정, 연결 가능, 연결 불가를 구분하지만 전체 서비스 의존성까지 종합하는 운영 readiness probe는 아니다.
 - trace 전체는 Spring이 아니라 Python agent service가 소유해야 한다.
 
 ## 검증

@@ -17,6 +17,7 @@ examples/
   curl/
     health.sh
     search-logs.sh
+    read-only-query.sh
     rejected-sql.sh
 ```
 
@@ -28,16 +29,15 @@ TOOL_SERVER_TOKEN=local-dev-token examples/curl/health.sh
 
 Each script accepts `TOOL_SERVER_URL` and `TOOL_SERVER_TOKEN` from the environment.
 
+`read-only-query.sh` expects an HTTP `200` response containing the synthetic `user_id=42` row. `rejected-sql.sh` expects HTTP `400` with `SQL_WRITE_BLOCKED`.
+
 ## Planned Examples
 
 ```text
 examples/
-  curl/
-    read-only-query.sh
   traces/
     null-profile-image.json
     rejected-destructive-sql.json
 ```
 
-Database-backed queries and trace fixtures will be added with the feature that makes them executable. The canonical beginner sequence remains in `docs/TUTORIAL.md`.
-
+Trace fixtures will be added with the agent service and replay dashboard. The canonical beginner sequence remains in `docs/TUTORIAL.md`.
