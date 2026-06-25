@@ -4,6 +4,10 @@ on:
   pull_request:
     paths:
       - "spring-tool-server/**"
+      - "infra/**"
+      - ".env.example"
+      - "README.md"
+      - "docs/DEVELOPMENT_PLAN.md"
       - "build.gradle"
       - "settings.gradle"
       - "gradle/**"
@@ -14,6 +18,10 @@ on:
       - main
     paths:
       - "spring-tool-server/**"
+      - "infra/**"
+      - ".env.example"
+      - "README.md"
+      - "docs/DEVELOPMENT_PLAN.md"
       - "build.gradle"
       - "settings.gradle"
       - "gradle/**"
@@ -34,5 +42,18 @@ jobs:
           distribution: temurin
           java-version: "21"
           cache: gradle
+      - name: Validate deterministic fixtures
+        run: infra/scripts/verify-fixtures.sh
+      - name: Prepare ephemeral database credentials
+        run: |
+          echo "POSTGRES_PASSWORD=ci-owner-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" >> "$GITHUB_ENV"
+          echo "TOOL_DB_PASSWORD=ci-reader-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" >> "$GITHUB_ENV"
+      - name: Start PostgreSQL demo database
+        run: docker compose -f infra/docker-compose.yml up -d --wait
+      - name: Verify seed data and read-only role
+        run: infra/scripts/verify-postgres.sh
       - name: Run Spring tool server tests
         run: ./gradlew :spring-tool-server:cleanTest :spring-tool-server:test --no-daemon
+      - name: Stop PostgreSQL demo database
+        if: always()
+        run: docker compose -f infra/docker-compose.yml down -v

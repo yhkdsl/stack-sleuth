@@ -1,3 +1,5 @@
-2026-06-24T02:40:00Z INFO Application started on loopback interface
-2026-06-24T02:45:00Z WARN Database connection pool usage reached 75 percent
-2026-06-24T02:50:00Z ERROR Profile lookup failed because profile_image was null
+2026-06-24T02:35:00Z INFO Application started on loopback interface
+2026-06-24T02:38:00Z WARN Database connection pool usage reached 75 percent
+2026-06-24T02:40:00Z ERROR request_id=req-demo-4201 service=ProfileService error=NullPointerException user_id=42 profile_img was null while rendering avatar
+2026-06-24T02:45:00Z ERROR request_id=req-demo-4202 service=ProfileService error=NullPointerException user_id=42 profile_img was null while rendering avatar
+2026-06-24T02:50:00Z ERROR request_id=req-demo-4203 service=ProfileService error=NullPointerException user_id=42 profile_img was null while rendering avatar
