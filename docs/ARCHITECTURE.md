@@ -55,7 +55,8 @@ React/Next.js Trace Dashboard
 - Owns OpenAI API interaction.
 - Registers tool schemas.
 - Runs the agent loop.
-- Enforces max iterations, tool timeouts, total timeout, and token budget.
+- Enforces max iterations, tool timeouts, total timeout, and bounded tool output.
+- Leaves a cumulative token-budget policy as a planned production hardening step.
 - Routes approved tool calls to Spring.
 - Redacts secrets and obvious personal data before trace persistence.
 - Owns trace APIs such as `GET /agent/traces/{traceId}`.

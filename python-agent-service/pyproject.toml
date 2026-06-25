@@ -1,0 +1,37 @@
+[project]
+name = "stack-sleuth-agent"
+version = "0.1.0"
+description = "Bounded OpenAI tool-calling orchestration service for StackSleuth"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "fastapi",
+    "httpx",
+    "openai",
+    "pydantic-settings",
+    "uvicorn[standard]",
+]
+
+[dependency-groups]
+dev = [
+    "pytest",
+    "pytest-asyncio",
+    "pytest-cov",
+    "respx",
+    "ruff",
+]
+
+[tool.pytest.ini_options]
+addopts = "-ra"
+asyncio_mode = "auto"
+pythonpath = ["."]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "RUF"]
+
+[tool.uv]
+package = false

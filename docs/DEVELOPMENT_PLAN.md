@@ -359,6 +359,7 @@ Storage:
 
 - MVP: local JSON files under `var/traces`.
 - Later: PostgreSQL table.
+- Production hardening: add configurable retention and deletion.
 
 Validation:
 

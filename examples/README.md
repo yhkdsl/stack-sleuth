@@ -19,6 +19,8 @@ examples/
     search-logs.sh
     read-only-query.sh
     rejected-sql.sh
+  python-agent/
+    mock_investigation.py
 ```
 
 Run the Spring tool server, then execute an example:
@@ -31,7 +33,18 @@ Each script accepts `TOOL_SERVER_URL` and `TOOL_SERVER_TOKEN` from the environme
 
 `read-only-query.sh` expects an HTTP `200` response containing the synthetic `user_id=42` row. `rejected-sql.sh` expects HTTP `400` with `SQL_WRITE_BLOCKED`.
 
-## Planned Examples
+Run a complete mocked agent loop without an OpenAI API key or a running Spring
+server:
+
+```bash
+cd python-agent-service
+uv run python ../examples/python-agent/mock_investigation.py
+```
+
+The example uses the production loop and trace store with scripted adapters.
+It prints a completed, redacted trace and writes only to a temporary directory.
+
+## Planned Trace Fixtures
 
 ```text
 examples/
