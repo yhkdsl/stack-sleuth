@@ -44,6 +44,18 @@ class ReadOnlySqlEndpointIntegrationTest {
     AuditSink auditSink;
 
     @Test
+    void healthEndpointReportsAvailableReadOnlyDatabase() throws Exception {
+        mockMvc.perform(post("/internal/tools/health")
+                .header("X-Tool-Server-Token", "test-token")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"includeJvm\":false,\"includeDbPool\":true}"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.status").value("ok"))
+            .andExpect(jsonPath("$.dbPool.status").value("available"))
+            .andExpect(jsonPath("$.dbPool.detail").value("Read-only database connection is available."));
+    }
+
+    @Test
     void endpointExecutesAsRestrictedReaderAccount() throws Exception {
         mockMvc.perform(post("/internal/tools/sql/read-only")
                 .header("X-Tool-Server-Token", "test-token")
