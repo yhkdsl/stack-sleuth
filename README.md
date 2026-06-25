@@ -29,6 +29,10 @@ The project concept is simple: a developer types an operations question in a ter
 - [Demo Script](docs/DEMO_SCRIPT.md)
 - [Submission Checklist](docs/SUBMISSION_CHECKLIST.md)
 - [Skills and Docs Checklist](docs/SKILLS_AND_DOCS.md)
+- [Beginner Tutorial](docs/TUTORIAL.md)
+- [Developer Experience Content Strategy](docs/CONTENT_STRATEGY.md)
+- [Build Log](docs/BUILD_LOG.md)
+- [Korean Article Series with English Summaries](docs/articles/README.md)
 
 ## Planned Quickstart
 
@@ -60,6 +64,7 @@ Expected result:
 | CLI | Not started |
 | React/Next.js trace dashboard | Not started |
 | Demo recording and trace-replay assets | Not started |
+| Beginner tutorial and DX content program | Structure and initial manuscripts documented; publication evidence is still in progress |
 
 ## Spring Tool Server
 

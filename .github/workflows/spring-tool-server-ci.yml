@@ -5,9 +5,10 @@ on:
     paths:
       - "spring-tool-server/**"
       - "infra/**"
+      - "docs/**"
+      - "examples/**"
       - ".env.example"
       - "README.md"
-      - "docs/DEVELOPMENT_PLAN.md"
       - "build.gradle"
       - "settings.gradle"
       - "gradle/**"
@@ -19,9 +20,10 @@ on:
     paths:
       - "spring-tool-server/**"
       - "infra/**"
+      - "docs/**"
+      - "examples/**"
       - ".env.example"
       - "README.md"
-      - "docs/DEVELOPMENT_PLAN.md"
       - "build.gradle"
       - "settings.gradle"
       - "gradle/**"
@@ -42,6 +44,13 @@ jobs:
           distribution: temurin
           java-version: "21"
           cache: gradle
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+      - name: Validate documentation and examples
+        run: |
+          node infra/scripts/verify-documentation.mjs
+          bash -n examples/curl/*.sh
       - name: Validate deterministic fixtures
         run: infra/scripts/verify-fixtures.sh
       - name: Prepare ephemeral database credentials

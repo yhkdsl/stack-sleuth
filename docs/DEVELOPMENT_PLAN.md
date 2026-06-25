@@ -17,6 +17,24 @@
 - The README must explain both the happy path and guardrail failure path.
 - The frontend must be an agent observability surface, not a generic chatbot UI.
 - Cost display must be labeled as estimated and backed by configurable pricing data, or hidden.
+- Major feature pull requests must update beginner guidance, runnable examples, design rationale, and relevant failure cases.
+- Meaningful debugging or architecture lessons must be recorded in `docs/BUILD_LOG.md`.
+- Repository documentation is written in English; blog manuscripts use Korean bodies with English summaries.
+- Planned content must be labeled as planned until its implementation and verification evidence exist.
+
+## Developer Experience Content Checkpoint
+
+For portfolio purposes, implementation alone does not complete a major phase. At the end of each phase:
+
+1. Update `docs/TUTORIAL.md` with prerequisites, exact commands, expected behavior, and troubleshooting.
+2. Add or update safe copyable examples under `examples/`.
+3. Explain the selected design and at least one rejected alternative or limitation.
+4. Record reusable debugging lessons in `docs/BUILD_LOG.md`.
+5. Update the corresponding manuscript under `docs/articles/`.
+6. Capture sanitized CLI or dashboard evidence when the feature is visible to users.
+7. Verify that README implementation status matches the code.
+
+The detailed publication workflow and article sequence are defined in `docs/CONTENT_STRATEGY.md`.
 
 ## Phase 0: Repository and Product Framing
 
@@ -35,6 +53,7 @@ Validation:
 
 - A new reader can explain the project from README alone.
 - No document claims a feature is implemented before it exists.
+- `docs/CONTENT_STRATEGY.md`, `docs/TUTORIAL.md`, and `docs/BUILD_LOG.md` define the documentation workflow before feature development expands.
 
 ## Phase 1: Spring Boot Tool Server
 
@@ -104,6 +123,12 @@ Tests:
 - Does not expose secrets or environment variables.
 - Requires internal tool authentication when auth is enabled.
 
+Content checkpoint:
+
+- Add a copyable authenticated health request to `docs/TUTORIAL.md` or `examples/curl/`.
+- Explain why the tool returns a normalized DTO instead of raw Actuator output.
+- Document disabled and unavailable database states without calling both states healthy.
+
 ### 1.3 Implement Log Search Tool
 
 Input:
@@ -126,6 +151,12 @@ Tests:
 - Filters by time window.
 - Rejects empty keyword.
 - Rejects overly broad limit.
+
+Content checkpoint:
+
+- Add a deterministic log-search example with synthetic request IDs.
+- Explain time-window and result-limit behavior to a beginner.
+- Record how log content is kept free of secrets and personal data.
 
 ### 1.4 Implement Read-Only SQL Tool
 
@@ -151,6 +182,12 @@ Tests:
 - Blocks `SELECT * FROM users; DELETE FROM users`.
 - Adds or enforces row limit.
 - Verifies execution uses a read-only database account.
+
+Content checkpoint:
+
+- Update `docs/articles/02-defense-in-depth-sql-safety.ko.md` with verified commands and source links.
+- Show both a successful `SELECT` and a blocked destructive statement.
+- Explain why parser policy and database authorization are separate controls.
 
 ### 1.5 Add Internal Tool Security
 
