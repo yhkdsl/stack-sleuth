@@ -170,10 +170,41 @@ Documentation updated:
 
 **Root cause:** Substring matching conflated credentials with metrics. In an agent trace, `accessToken` is sensitive while `inputTokens` and `totalTokens` are operational measurements.
 
-**Decision:** Normalize field names and compare them against an explicit credential-key set. Continue scanning string values for API-key, bearer-token, email, and phone patterns immediately before persistence.
+**Decision:** Normalize field names and compare them against an explicit credential-key set. Scan string values for API-key, bearer-token, email, and phone patterns before tool output is returned to the model, then repeat the scan immediately before persistence.
 
-**Verification:** Redaction tests cover nested credentials and personal data while requiring usage metrics to survive unchanged. The HTTP integration test injects a synthetic email-shaped value into a mocked Spring result and verifies that the persisted and replayed trace contains `[REDACTED]`.
+**Verification:** Redaction tests cover nested credentials and personal data while requiring usage metrics to survive unchanged. The HTTP integration test injects a synthetic email-shaped value into a mocked Spring result and verifies that the model continuation, persisted trace, and replayed trace contain `[REDACTED]`.
 
 **Lesson for readers:** Redaction is a data-classification problem, not a keyword search. Over-redaction can silently break the observability needed to operate an agent.
 
 **Documentation updated:** This build log and `docs/articles/03-openai-function-calling-agent-loop.ko.md`.
+
+## 2026-06-25: Treat Model Completion and Persistence as Bounded Contracts
+
+**Related work:** PR #11 review hardening
+
+**Problem:** A Responses API result with `status=incomplete` could have no tool
+call and an empty output string, which the first loop implementation reported
+as a successful trace. The request timeout also ended before local trace
+persistence, and request/output size had no explicit bound.
+
+**Evidence:** A regression fixture with
+`incomplete_details.reason=max_output_tokens` produced `status=completed`,
+`finalAnswer=""`, and no error. A delayed trace store extended a request beyond
+its configured deadline.
+
+**Decision:** Preserve response status metadata in the adapter, map incomplete,
+failed, and empty responses to explicit trace failures, reserve part of the
+total deadline for persistence, reject oversized user requests before model
+execution, and pass `MAX_OUTPUT_TOKENS` to every Responses API call.
+
+**Verification:** Tests cover incomplete and failed responses, empty completed
+responses, persistence timeout, request-length rejection, output-token
+configuration, and redaction before model continuation.
+
+**Lesson for readers:** A bounded agent must constrain the whole lifecycle, not
+only the tool loop. Provider status, input size, output size, and trace storage
+are all part of the runtime contract.
+
+**Documentation updated:** `python-agent-service/README.md`,
+`docs/TUTORIAL.md`, `docs/ARCHITECTURE.md`, and
+`docs/articles/03-openai-function-calling-agent-loop.ko.md`.

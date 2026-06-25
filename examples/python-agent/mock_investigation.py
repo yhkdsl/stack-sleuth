@@ -16,6 +16,7 @@ from app.models import (  # noqa: E402
     ModelTurn,
     ToolExecutionResult,
     ToolExecutionStatus,
+    TraceStatus,
 )
 from app.trace_store import FileTraceStore  # noqa: E402
 
@@ -36,6 +37,7 @@ class ScriptedModel:
             )
             return ModelTurn(
                 response_id="mock-response-1",
+                response_status="completed",
                 output_text="",
                 function_calls=[
                     FunctionCall(
@@ -56,6 +58,7 @@ class ScriptedModel:
             )
         return ModelTurn(
             response_id="mock-response-2",
+            response_status="completed",
             output_text=(
                 "Three recent errors reference synthetic user 42. "
                 "A database check is required to confirm the cause."
@@ -105,6 +108,8 @@ async def main() -> None:
             "Investigate errors from the last hour",
             trace_id="trace_mock_demo",
         )
+        if trace.status is not TraceStatus.COMPLETED:
+            raise RuntimeError(f"mock investigation failed: {trace.error}")
         print(trace.model_dump_json(indent=2))
 
 

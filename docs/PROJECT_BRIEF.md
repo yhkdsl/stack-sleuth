@@ -144,11 +144,13 @@ Responsible for:
 - Calling the OpenAI Responses API
 - Registering tool schemas with strict JSON schemas where possible
 - Running the tool-call loop
-- Enforcing max iterations, tool timeout, total request timeout, and bounded tool output
+- Enforcing max iterations, tool timeout, total request timeout, bounded user
+  input, bounded model output, and bounded tool output
 - Adding a cumulative token-budget policy as a production-hardening follow-up
 - Converting Spring API responses into model-readable tool outputs
 - Persisting traces for replay and debugging
-- Redacting sensitive tool outputs before storing or showing traces
+- Redacting sensitive tool outputs before model continuation, storage, or
+  trace display
 
 Key design choice:
 

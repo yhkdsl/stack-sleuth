@@ -1,4 +1,5 @@
 import json
+import time
 from collections.abc import Sequence
 from pathlib import Path
 from typing import Any
@@ -61,6 +62,9 @@ def turn(
     calls: list[FunctionCall] | None = None,
     text: str = "",
     tokens: int = 10,
+    response_status: str = "completed",
+    incomplete_reason: str | None = None,
+    response_error_code: str | None = None,
 ) -> ModelTurn:
     resolved_calls = calls or []
     return ModelTurn(
@@ -77,6 +81,9 @@ def turn(
             for call in resolved_calls
         ],
         usage={"inputTokens": tokens - 2, "outputTokens": 2, "totalTokens": tokens},
+        response_status=response_status,
+        incomplete_reason=incomplete_reason,
+        response_error_code=response_error_code,
     )
 
 
@@ -205,6 +212,62 @@ async def test_agent_loop_returns_structured_tool_error_to_model(tmp_path: Path)
     assert trace.guardrailRejections[0].status is ToolExecutionStatus.REJECTED
 
 
+async def test_agent_loop_redacts_sensitive_tool_output_before_model_continuation(
+    tmp_path: Path,
+) -> None:
+    model = FakeModelClient(
+        [
+            turn(
+                "resp-1",
+                calls=[
+                    FunctionCall(
+                        call_id="call-logs",
+                        name="search_error_logs",
+                        arguments='{"keyword":"ERROR","sinceMinutes":60,"limit":20}',
+                    )
+                ],
+            ),
+            turn("resp-2", text="Sensitive values were excluded from the analysis."),
+        ]
+    )
+    router = FakeToolRouter(
+        [
+            ToolExecutionResult(
+                status=ToolExecutionStatus.SUCCESS,
+                output={
+                    "matches": [
+                        {
+                            "message": (
+                                "ERROR contact=demo.user@example.test "
+                                "Authorization=Bearer secret-token"
+                            )
+                        }
+                    ]
+                },
+            )
+        ]
+    )
+    loop = AgentLoop(
+        model_client=model,
+        tool_router=router,
+        trace_store=FileTraceStore(tmp_path),
+        model="test-model",
+        max_iterations=2,
+        request_timeout_seconds=1,
+    )
+
+    trace = await loop.run("Investigate", trace_id="trace-model-redaction")
+
+    model_output = model.calls[1]["input_items"][2]["output"]
+    persisted = (tmp_path / "trace-model-redaction.json").read_text()
+    assert "demo.user@example.test" not in model_output
+    assert "secret-token" not in model_output
+    assert "demo.user@example.test" not in persisted
+    assert "secret-token" not in persisted
+    assert "[REDACTED]" in model_output
+    assert trace.redactions
+
+
 async def test_agent_loop_rejects_malformed_arguments_without_calling_router(
     tmp_path: Path,
 ) -> None:
@@ -285,6 +348,90 @@ async def test_agent_loop_stops_after_max_iterations_and_persists_trace(
         "message": "Agent stopped after 2 model iterations.",
     }
     assert (await store.get("trace-max")).status is TraceStatus.INCOMPLETE
+
+
+async def test_agent_loop_marks_incomplete_model_response_without_empty_success(
+    tmp_path: Path,
+) -> None:
+    model = FakeModelClient(
+        [
+            turn(
+                "resp-incomplete",
+                response_status="incomplete",
+                incomplete_reason="max_output_tokens",
+            )
+        ]
+    )
+    loop = AgentLoop(
+        model_client=model,
+        tool_router=FakeToolRouter([]),
+        trace_store=FileTraceStore(tmp_path),
+        model="test-model",
+        max_iterations=2,
+        request_timeout_seconds=1,
+    )
+
+    trace = await loop.run("Investigate", trace_id="trace-model-incomplete")
+
+    assert trace.status is TraceStatus.INCOMPLETE
+    assert trace.finalAnswer is None
+    assert trace.error == {
+        "code": "MODEL_RESPONSE_INCOMPLETE",
+        "message": "The model response was incomplete: max_output_tokens.",
+    }
+
+
+async def test_agent_loop_marks_failed_model_response_without_empty_success(
+    tmp_path: Path,
+) -> None:
+    model = FakeModelClient(
+        [
+            turn(
+                "resp-failed",
+                response_status="failed",
+                response_error_code="server_error",
+            )
+        ]
+    )
+    loop = AgentLoop(
+        model_client=model,
+        tool_router=FakeToolRouter([]),
+        trace_store=FileTraceStore(tmp_path),
+        model="test-model",
+        max_iterations=2,
+        request_timeout_seconds=1,
+    )
+
+    trace = await loop.run("Investigate", trace_id="trace-model-failed")
+
+    assert trace.status is TraceStatus.FAILED
+    assert trace.finalAnswer is None
+    assert trace.error == {
+        "code": "MODEL_RESPONSE_FAILED",
+        "message": "The model returned a failed response.",
+    }
+
+
+async def test_agent_loop_rejects_completed_response_with_empty_final_answer(
+    tmp_path: Path,
+) -> None:
+    loop = AgentLoop(
+        model_client=FakeModelClient([turn("resp-empty")]),
+        tool_router=FakeToolRouter([]),
+        trace_store=FileTraceStore(tmp_path),
+        model="test-model",
+        max_iterations=2,
+        request_timeout_seconds=1,
+    )
+
+    trace = await loop.run("Investigate", trace_id="trace-empty-answer")
+
+    assert trace.status is TraceStatus.INCOMPLETE
+    assert trace.finalAnswer is None
+    assert trace.error == {
+        "code": "EMPTY_MODEL_OUTPUT",
+        "message": "The model returned no tool call or final answer.",
+    }
 
 
 async def test_agent_loop_persists_openai_failure_without_leaking_message(
@@ -378,3 +525,37 @@ async def test_agent_loop_enforces_total_request_timeout(tmp_path: Path) -> None
         "code": "REQUEST_TIMEOUT",
         "message": "Agent request exceeded 0.01 seconds.",
     }
+
+
+async def test_agent_loop_includes_trace_persistence_in_total_deadline(
+    tmp_path: Path,
+) -> None:
+    class SlowTraceStore(FileTraceStore):
+        def _write_temporary(self, trace: Any) -> Path:
+            time.sleep(0.05)
+            return super()._write_temporary(trace)
+
+    loop = AgentLoop(
+        model_client=FakeModelClient([turn("resp-1", text="All clear.")]),
+        tool_router=FakeToolRouter([]),
+        trace_store=SlowTraceStore(tmp_path),
+        model="test-model",
+        max_iterations=2,
+        request_timeout_seconds=0.02,
+    )
+
+    started = time.perf_counter()
+    trace = await loop.run("Investigate", trace_id="trace-slow-persistence")
+    elapsed = time.perf_counter() - started
+
+    assert elapsed < 0.04
+    assert trace.status is TraceStatus.INCOMPLETE
+    assert trace.error == {
+        "code": "TRACE_PERSISTENCE_TIMEOUT",
+        "message": "Trace persistence exceeded the total request deadline.",
+    }
+    import asyncio
+
+    await asyncio.sleep(0.06)
+    assert not (tmp_path / "trace-slow-persistence.json").exists()
+    assert list(tmp_path.glob(".trace-slow-persistence.*.tmp")) == []

@@ -114,7 +114,9 @@ MVP controls:
 - CORS allows only the dashboard origin to call FastAPI.
 - SQL execution uses parser validation and a read-only DB user.
 - Raw Actuator endpoints are not exposed to the model or dashboard; Spring returns a normalized health DTO.
-- Trace persistence redacts API keys, DB credentials, access tokens, emails, and obvious personal data.
+- Tool results redact API keys, DB credentials, access tokens, emails, and
+  obvious personal data before model continuation. Trace persistence repeats
+  the same scan as a defense-in-depth check.
 - Tool outputs are treated as untrusted data, not model instructions.
 
 Future hardening:
@@ -132,7 +134,10 @@ Expected failures should be visible, not hidden:
 - Tool timeout
 - Tool server unavailable
 - OpenAI API error
+- OpenAI incomplete or failed response
+- Empty model response
 - Max agent iterations reached
+- Total request or trace-persistence timeout
 - Trace redaction applied
 - Pricing metadata unavailable
 

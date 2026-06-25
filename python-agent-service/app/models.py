@@ -79,6 +79,9 @@ class FunctionCall(BaseModel):
 
 class ModelTurn(BaseModel):
     response_id: str
+    response_status: str
+    incomplete_reason: str | None = None
+    response_error_code: str | None = None
     output_text: str
     function_calls: list[FunctionCall]
     continuation_items: list[dict[str, Any]] = Field(default_factory=list)

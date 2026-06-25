@@ -13,10 +13,11 @@ service uses strict function schemas, routes only approved calls to Spring
 Boot, returns structured tool results to the model, and stops on independent
 model-iteration, tool, and total-request limits. OpenAI response storage is
 disabled; prior response items and encrypted reasoning content are carried
-forward by the application. Traces are redacted immediately before local
-persistence and can be replayed without model or tool calls. Verification uses
-mocked OpenAI and Spring boundaries plus an HTTP integration test. A live
-OpenAI run is intentionally not claimed as automated evidence.
+forward by the application. Sensitive tool output is redacted before model
+continuation and checked again before local persistence. Traces can be replayed
+without model or tool calls. Verification uses mocked OpenAI and Spring
+boundaries plus an HTTP integration test. A live OpenAI run is intentionally
+not claimed as automated evidence.
 
 ## 이 글의 대상과 목표
 
@@ -121,20 +122,31 @@ agent가 멈추지 않는 문제는 timeout 하나로 해결되지 않는다.
 
 1. `AGENT_MAX_ITERATIONS`는 모델이 계속 도구를 선택하는 loop를 중단한다.
 2. `TOOL_TIMEOUT_SECONDS`는 개별 Spring HTTP 요청을 제한한다.
-3. `REQUEST_TIMEOUT_SECONDS`는 모델과 도구 호출을 합친 전체 실행 시간을 제한한다.
+3. `REQUEST_TIMEOUT_SECONDS`는 모델·도구 호출과 trace 저장을 포함한 전체 요청
+   시간을 제한한다.
+4. `MAX_USER_REQUEST_CHARS`는 모델 호출 전 사용자 입력 크기를 제한한다.
+5. `MAX_OUTPUT_TOKENS`는 각 Responses API 출력 크기를 제한한다.
 
 전체 timeout은 `REQUEST_TIMEOUT`, 반복 소진은 `MAX_ITERATIONS_REACHED`, 개별
 Spring timeout은 tool result의 `TOOL_TIMEOUT`으로 기록된다. 호출자는 HTTP 상태와
 trace ID를 함께 받기 때문에 실패 후에도 무엇이 실행되었는지 확인할 수 있다.
 
+Responses API가 `incomplete` 또는 `failed` 상태를 반환하면 빈 문자열을 성공
+답변으로 처리하지 않는다. `max_output_tokens` 중단은
+`MODEL_RESPONSE_INCOMPLETE`, 내용과 tool call이 모두 없는 완료 응답은
+`EMPTY_MODEL_OUTPUT`으로 기록한다.
+
 Spring의 `4xx`는 `rejected`, `5xx`와 연결 실패는 `failed`, timeout은
 `timed_out`으로 구분한다. 정책 거부와 장애를 같은 실패로 표시하지 않는 이유는
 운영자가 취할 행동이 다르기 때문이다.
 
-## 저장 직전 redaction
+## 모델 전달 전과 저장 전 redaction
 
 trace에는 사용자 요청, 모델 답변, tool arguments와 results가 모두 들어간다.
-따라서 저장 직전에 전체 구조를 재귀적으로 검사한다.
+Spring tool result는 다음 OpenAI 요청에 포함되기 전에 먼저 재귀적으로 검사한다.
+따라서 로그나 DB 결과의 이메일·credential이 모델 입력으로 그대로 넘어가지
+않는다. trace 저장 시에도 같은 검사를 다시 적용해 애플리케이션의 다른 경로에서
+들어온 민감값을 방어적으로 제거한다.
 
 - API key와 bearer-style credential 패턴
 - password, credential, access token 같은 명시적 필드

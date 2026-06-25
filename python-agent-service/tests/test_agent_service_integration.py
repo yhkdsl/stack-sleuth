@@ -16,6 +16,7 @@ from app.trace_store import FileTraceStore
 class ScriptedModelClient:
     def __init__(self) -> None:
         self.turn = 0
+        self.calls: list[str | list[dict[str, Any]]] = []
 
     async def create(
         self,
@@ -23,12 +24,14 @@ class ScriptedModelClient:
         input_items: str | list[dict[str, Any]],
     ) -> ModelTurn:
         self.turn += 1
+        self.calls.append(input_items)
         if self.turn == 1:
             arguments = json.dumps(
                 {"keyword": "ERROR", "sinceMinutes": 60, "limit": 20}
             )
             return ModelTurn(
                 response_id="resp-integration-1",
+                response_status="completed",
                 output_text="",
                 function_calls=[
                     FunctionCall(
@@ -49,6 +52,7 @@ class ScriptedModelClient:
             )
         return ModelTurn(
             response_id="resp-integration-2",
+            response_status="completed",
             output_text="Three errors reference synthetic user 42.",
             function_calls=[],
             continuation_items=[{"type": "message", "role": "assistant"}],
@@ -87,8 +91,9 @@ async def test_http_run_routes_tool_call_and_replays_redacted_trace(
         )
     )
     store = FileTraceStore(tmp_path)
+    model_client = ScriptedModelClient()
     loop = AgentLoop(
-        model_client=ScriptedModelClient(),
+        model_client=model_client,
         tool_router=SpringToolRouter(
             base_url="http://tool-server:8080",
             token="integration-token",
@@ -122,6 +127,11 @@ async def test_http_run_routes_tool_call_and_replays_redacted_trace(
         "message"
     ]
     assert run_response.json()["redactions"]
+    model_continuation = model_client.calls[1]
+    assert isinstance(model_continuation, list)
+    model_output = model_continuation[2]["output"]
+    assert "demo.user@example.test" not in model_output
+    assert "[REDACTED]" in model_output
     spring_request = spring_route.calls.last.request
     assert spring_request.headers["X-Tool-Server-Token"] == "integration-token"
     assert spring_request.headers["X-Trace-Id"] == trace_id

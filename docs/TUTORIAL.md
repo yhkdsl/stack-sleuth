@@ -183,7 +183,14 @@ but live runs return `AGENT_NOT_CONFIGURED`.
 Inspect the returned trace. `REQUEST_TIMEOUT` means the full request exceeded
 `REQUEST_TIMEOUT_SECONDS`; `MAX_ITERATIONS_REACHED` means the model exhausted
 `AGENT_MAX_ITERATIONS`. A Spring timeout appears on the individual tool result
-as `TOOL_TIMEOUT`.
+as `TOOL_TIMEOUT`. `MODEL_RESPONSE_INCOMPLETE` records a Responses API
+incomplete status such as `max_output_tokens`, while `EMPTY_MODEL_OUTPUT`
+prevents an empty response from being reported as success.
+
+Requests longer than `MAX_USER_REQUEST_CHARS` are rejected before a model call.
+`MAX_OUTPUT_TOKENS` bounds each model response. The total request deadline
+reserves time for trace persistence; a storage overrun returns
+`TRACE_PERSISTENCE_TIMEOUT` instead of extending the request indefinitely.
 
 ## Next Reading
 

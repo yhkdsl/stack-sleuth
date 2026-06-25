@@ -70,10 +70,15 @@ configuration error.
 - At most one tool call is requested per model response.
 - Model iterations, each Spring request, and the full agent request have
   independent limits.
+- User requests are limited by `MAX_USER_REQUEST_CHARS`, and each model
+  response is limited by `MAX_OUTPUT_TOKENS`.
 - Only the three registered read-only tools can be routed.
 - Tool output is treated as untrusted data and is size-bounded.
 - API keys, credentials, tokens, email addresses, and phone numbers are
-  redacted immediately before trace persistence.
+  redacted before tool output is returned to OpenAI. Trace persistence applies
+  the same recursive redaction again as a defense-in-depth check.
+- OpenAI `incomplete` and failed response states never become successful empty
+  answers. The total request deadline also reserves time for trace persistence.
 - OpenAI response storage is disabled. Stateless reasoning items are carried
   forward using encrypted reasoning content as documented by OpenAI.
 

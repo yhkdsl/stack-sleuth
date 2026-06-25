@@ -9,6 +9,7 @@ class Settings(BaseSettings):
         env_file=".env",
         env_file_encoding="utf-8",
         extra="ignore",
+        populate_by_name=True,
     )
 
     openai_api_key: SecretStr | None = Field(default=None, alias="OPENAI_API_KEY")
@@ -44,6 +45,18 @@ class Settings(BaseSettings):
         ge=256,
         le=100_000,
         alias="MAX_TOOL_OUTPUT_CHARS",
+    )
+    max_user_request_chars: int = Field(
+        default=4000,
+        ge=1,
+        le=100_000,
+        alias="MAX_USER_REQUEST_CHARS",
+    )
+    max_output_tokens: int = Field(
+        default=1200,
+        ge=1,
+        le=100_000,
+        alias="MAX_OUTPUT_TOKENS",
     )
     trace_directory: Path = Field(
         default=Path("../var/traces"),

@@ -46,6 +46,17 @@ def create_app(
 
     @app.post("/agent/run", response_model=AgentTrace)
     async def run_agent(request: AgentRunRequest) -> AgentTrace | JSONResponse:
+        if len(request.request) > resolved_settings.max_user_request_chars:
+            return JSONResponse(
+                status_code=413,
+                content={
+                    "code": "REQUEST_TOO_LARGE",
+                    "message": (
+                        "Agent request exceeds the "
+                        f"{resolved_settings.max_user_request_chars} character limit."
+                    ),
+                },
+            )
         if resolved_loop is None:
             return JSONResponse(
                 status_code=503,
@@ -91,6 +102,7 @@ def _build_live_loop(
     return AgentLoop(
         model_client=OpenAIResponsesClient(
             model=settings.agent_model,
+            max_output_tokens=settings.max_output_tokens,
             api_key=settings.openai_api_key.get_secret_value(),
         ),
         tool_router=SpringToolRouter(

@@ -8,13 +8,17 @@ from typing import Any, Protocol
 from app.models import (
     AgentTrace,
     ModelTurn,
+    RedactionEvent,
     ToolCallRecord,
     ToolExecutionResult,
     ToolExecutionStatus,
     ToolResultRecord,
     TraceStatus,
 )
+from app.redaction import redact
 from app.trace_store import FileTraceStore
+
+_MAX_TRACE_PERSISTENCE_RESERVE_SECONDS = 0.1
 
 
 class ModelClient(Protocol):
@@ -79,8 +83,15 @@ class AgentLoop:
             finalAnswer=None,
         )
         started = time.perf_counter()
+        loop = asyncio.get_running_loop()
+        deadline = loop.time() + self._request_timeout_seconds
+        persistence_reserve = min(
+            _MAX_TRACE_PERSISTENCE_RESERVE_SECONDS,
+            self._request_timeout_seconds * 0.1,
+        )
+        execution_timeout = self._request_timeout_seconds - persistence_reserve
         try:
-            async with asyncio.timeout(self._request_timeout_seconds):
+            async with asyncio.timeout(execution_timeout):
                 await self._run_iterations(trace)
         except TimeoutError:
             trace.status = TraceStatus.INCOMPLETE
@@ -105,7 +116,25 @@ class AgentLoop:
         finally:
             trace.completedAt = _now()
             trace.totalDurationMs = round((time.perf_counter() - started) * 1000)
-        return await self._trace_store.save(trace)
+
+        remaining = deadline - loop.time()
+        if remaining > 0:
+            try:
+                async with asyncio.timeout(remaining):
+                    return await self._trace_store.save(trace)
+            except TimeoutError:
+                pass
+
+        if trace.error is None:
+            trace.status = TraceStatus.INCOMPLETE
+            trace.finalAnswer = None
+            trace.error = {
+                "code": "TRACE_PERSISTENCE_TIMEOUT",
+                "message": "Trace persistence exceeded the total request deadline.",
+            }
+        trace.completedAt = _now()
+        trace.totalDurationMs = round((time.perf_counter() - started) * 1000)
+        return self._trace_store.sanitize(trace)
 
     async def _run_iterations(self, trace: AgentTrace) -> None:
         input_items: list[dict[str, Any]] = [
@@ -119,7 +148,31 @@ class AgentLoop:
             trace.iterations = iteration
             _add_usage(trace.usage, turn.usage)
 
+            if turn.response_status == "incomplete":
+                reason = turn.incomplete_reason or "unknown_reason"
+                trace.status = TraceStatus.INCOMPLETE
+                trace.error = {
+                    "code": "MODEL_RESPONSE_INCOMPLETE",
+                    "message": f"The model response was incomplete: {reason}.",
+                }
+                return
+
+            if turn.response_status != "completed":
+                trace.status = TraceStatus.FAILED
+                trace.error = {
+                    "code": "MODEL_RESPONSE_FAILED",
+                    "message": "The model returned a failed response.",
+                }
+                return
+
             if not turn.function_calls:
+                if not turn.output_text.strip():
+                    trace.status = TraceStatus.INCOMPLETE
+                    trace.error = {
+                        "code": "EMPTY_MODEL_OUTPUT",
+                        "message": "The model returned no tool call or final answer.",
+                    }
+                    return
                 trace.status = TraceStatus.COMPLETED
                 trace.finalAnswer = turn.output_text
                 return
@@ -132,6 +185,19 @@ class AgentLoop:
                     call.arguments,
                     trace_id=trace.traceId,
                     request_id=request_id,
+                )
+                safe_output, redaction_events = redact(result.output)
+                result.output = safe_output
+                result_index = len(trace.toolResults)
+                trace.redactions.extend(
+                    RedactionEvent(
+                        path=(
+                            f"$.toolResults[{result_index}].output"
+                            f"{event.path.removeprefix('$')}"
+                        ),
+                        reason=event.reason,
+                    )
+                    for event in redaction_events
                 )
                 call_record = ToolCallRecord(
                     callId=call.call_id,

@@ -126,6 +126,34 @@ async def test_run_requires_non_blank_request(tmp_path: Path) -> None:
     assert response.status_code == 422
 
 
+async def test_run_rejects_request_larger_than_configured_limit(
+    tmp_path: Path,
+) -> None:
+    limited_settings = Settings(
+        openai_api_key=None,
+        agent_model="test-model",
+        trace_directory=tmp_path,
+        cors_origins=["http://localhost:3000"],
+        max_user_request_chars=10,
+    )
+    loop = FakeLoop(trace())
+    app = create_app(limited_settings, agent_loop=loop)
+
+    response = await request(
+        app,
+        "POST",
+        "/agent/run",
+        json={"request": "x" * 11},
+    )
+
+    assert response.status_code == 413
+    assert response.json() == {
+        "code": "REQUEST_TOO_LARGE",
+        "message": "Agent request exceeds the 10 character limit.",
+    }
+    assert loop.requests == []
+
+
 async def test_live_run_without_api_key_returns_safe_configuration_error(
     tmp_path: Path,
 ) -> None:
