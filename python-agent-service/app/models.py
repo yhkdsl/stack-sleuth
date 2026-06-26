@@ -66,6 +66,8 @@ class AgentTrace(BaseModel):
     estimatedCost: float | None
     pricingMetadata: dict[str, Any] | None
     totalDurationMs: int | None
+    persisted: bool = False
+    persistenceError: dict[str, str] | None = None
     confidence: float | None = Field(default=None, ge=0, le=1)
     finalAnswer: str | None
     error: dict[str, str] | None = None

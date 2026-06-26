@@ -65,6 +65,43 @@ The service can start without an OpenAI API key so saved traces remain
 replayable. Live `POST /agent/run` requests then return a structured HTTP `503`
 configuration error.
 
+## Trace Persistence Contract
+
+Every agent response includes two persistence fields:
+
+- `persisted` is `true` only after the redacted trace has been atomically moved
+  to its replay location.
+- `persistenceError` is normally `null`. If persistence misses the total
+  request deadline, it contains `TRACE_PERSISTENCE_TIMEOUT`.
+
+The primary `error` preserves the investigation failure. For example, if model
+execution and trace persistence both time out, `error.code` remains
+`REQUEST_TIMEOUT`, while `persistenceError.code` reports
+`TRACE_PERSISTENCE_TIMEOUT` and `persisted` is `false`. Clients must check
+`persisted` before offering a replay link.
+
+`totalDurationMs` is finalized by the trace store after its first write pass and
+is included in the persisted JSON. This captures model and tool execution,
+queueing, redaction, serialization, and the main persistence write. The final
+atomic replacement is intentionally not timed recursively into the JSON value.
+
+## Failure Contract
+
+| Condition | HTTP | Primary code | Persisted trace |
+| --- | ---: | --- | --- |
+| Live model is not configured | 503 | `AGENT_NOT_CONFIGURED` | No trace is created |
+| User request exceeds the configured limit | 413 | `REQUEST_TOO_LARGE` | No trace is created |
+| Agent execution budget is exhausted | 504 | `REQUEST_TIMEOUT` | Check `persisted` |
+| Model returns `incomplete` | 409 | `MODEL_RESPONSE_INCOMPLETE` | Normally yes |
+| Model returns `failed` | 502 | `MODEL_RESPONSE_FAILED` | Normally yes |
+| Completed response has no answer or tool call | 409 | `EMPTY_MODEL_OUTPUT` | Normally yes |
+| Iteration limit is exhausted | 409 | `MAX_ITERATIONS_REACHED` | Normally yes |
+| Trace persistence misses the deadline | 409, 502, or 504 | Original failure, or `TRACE_PERSISTENCE_TIMEOUT` | No |
+
+For a failed Responses API result, `error.providerCode` preserves the
+provider's non-sensitive machine-readable code when one is present. Provider
+error messages are not copied into the trace.
+
 ## Safety Boundaries
 
 - At most one tool call is requested per model response.

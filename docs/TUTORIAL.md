@@ -133,14 +133,16 @@ CLI is still planned.
 
 ## 6. Inspect and Replay the Trace
 
-The trace API is implemented. Replay a trace returned by `POST /agent/run`:
+The trace API is implemented. Replay a trace returned by `POST /agent/run` only
+when its `persisted` field is `true`:
 
 ```bash
 curl http://localhost:8000/agent/traces/<trace_id>
 ```
 
 Replay reads the redacted local JSON trace and does not call OpenAI or Spring.
-The React dashboard is still planned.
+When `persisted` is `false`, inspect `persistenceError` instead of presenting a
+replay link. The React dashboard is still planned.
 
 The dashboard will eventually show:
 
@@ -180,17 +182,20 @@ but live runs return `AGENT_NOT_CONFIGURED`.
 
 ### A live request times out or stops before an answer
 
-Inspect the returned trace. `REQUEST_TIMEOUT` means the full request exceeded
-`REQUEST_TIMEOUT_SECONDS`; `MAX_ITERATIONS_REACHED` means the model exhausted
-`AGENT_MAX_ITERATIONS`. A Spring timeout appears on the individual tool result
-as `TOOL_TIMEOUT`. `MODEL_RESPONSE_INCOMPLETE` records a Responses API
-incomplete status such as `max_output_tokens`, while `EMPTY_MODEL_OUTPUT`
-prevents an empty response from being reported as success.
+Inspect the returned trace. `REQUEST_TIMEOUT` means the agent execution budget
+reserved within `REQUEST_TIMEOUT_SECONDS` was exhausted;
+`MAX_ITERATIONS_REACHED` means the model exhausted `AGENT_MAX_ITERATIONS`. A
+Spring timeout appears on the individual tool result as `TOOL_TIMEOUT`.
+`MODEL_RESPONSE_INCOMPLETE` records a Responses API incomplete status such as
+`max_output_tokens`, while `EMPTY_MODEL_OUTPUT` prevents an empty response from
+being reported as success.
 
 Requests longer than `MAX_USER_REQUEST_CHARS` are rejected before a model call.
 `MAX_OUTPUT_TOKENS` bounds each model response. The total request deadline
 reserves time for trace persistence; a storage overrun returns
-`TRACE_PERSISTENCE_TIMEOUT` instead of extending the request indefinitely.
+`TRACE_PERSISTENCE_TIMEOUT` in `persistenceError` instead of extending the
+request indefinitely. If execution had already failed, its code remains in
+`error`; check `persisted` before attempting replay.
 
 ## Next Reading
 

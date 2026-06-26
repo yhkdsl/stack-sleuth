@@ -357,6 +357,8 @@ Trace fields:
 - `estimatedCost`
 - `pricingMetadata`
 - `totalDurationMs`
+- `persisted`
+- `persistenceError`
 - `confidence`
 - `finalAnswer`
 
@@ -368,8 +370,10 @@ Storage:
 
 Validation:
 
-- Every `/agent/run` returns a trace ID.
-- Trace can be replayed without calling OpenAI.
+- Every started `/agent/run` returns a trace ID and persistence status.
+- A trace with `persisted=true` can be replayed without calling OpenAI.
+- A trace with `persisted=false` exposes a structured persistence error and
+  must not be presented as replayable.
 - Trace JSON contains enough information for both CLI verbose output and web dashboard rendering.
 - Trace JSON does not contain API keys, DB credentials, access tokens, or unredacted obvious personal data.
 

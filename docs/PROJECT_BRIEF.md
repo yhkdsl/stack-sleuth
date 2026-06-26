@@ -515,8 +515,8 @@ The project is successful when a reviewer can:
 
 ## 15. Source References
 
-- OpenAI Responses API: https://platform.openai.com/docs/api-reference/responses
-- OpenAI Function Calling Guide: https://platform.openai.com/docs/guides/function-calling
-- OpenAI Agents SDK Guide: https://platform.openai.com/docs/guides/agents
-- OpenAI Safety Best Practices: https://platform.openai.com/docs/guides/safety-best-practices
-- OpenAI Production Best Practices: https://platform.openai.com/docs/guides/production-best-practices
+- OpenAI Responses API: https://developers.openai.com/api/reference/resources/responses/methods/create
+- OpenAI Function Calling Guide: https://developers.openai.com/api/docs/guides/function-calling
+- OpenAI Agents SDK Guide: https://developers.openai.com/api/docs/guides/agents
+- OpenAI Safety Best Practices: https://developers.openai.com/api/docs/guides/safety-best-practices
+- OpenAI Production Best Practices: https://developers.openai.com/api/docs/guides/production-best-practices

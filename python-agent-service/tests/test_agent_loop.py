@@ -409,6 +409,7 @@ async def test_agent_loop_marks_failed_model_response_without_empty_success(
     assert trace.error == {
         "code": "MODEL_RESPONSE_FAILED",
         "message": "The model returned a failed response.",
+        "providerCode": "server_error",
     }
 
 
@@ -506,7 +507,7 @@ async def test_agent_loop_enforces_total_request_timeout(tmp_path: Path) -> None
         async def create(self, **_: Any) -> ModelTurn:
             import asyncio
 
-            await asyncio.sleep(0.05)
+            await asyncio.sleep(0.2)
             return turn("late", text="Too late")
 
     loop = AgentLoop(
@@ -515,7 +516,7 @@ async def test_agent_loop_enforces_total_request_timeout(tmp_path: Path) -> None
         trace_store=FileTraceStore(tmp_path),
         model="test-model",
         max_iterations=2,
-        request_timeout_seconds=0.01,
+        request_timeout_seconds=0.1,
     )
 
     trace = await loop.run("Investigate", trace_id="trace-timeout")
@@ -523,17 +524,23 @@ async def test_agent_loop_enforces_total_request_timeout(tmp_path: Path) -> None
     assert trace.status is TraceStatus.INCOMPLETE
     assert trace.error == {
         "code": "REQUEST_TIMEOUT",
-        "message": "Agent request exceeded 0.01 seconds.",
+        "message": "Agent execution exhausted its 0.09 second budget.",
     }
+    assert trace.persisted is True
+    assert trace.persistenceError is None
 
 
 async def test_agent_loop_includes_trace_persistence_in_total_deadline(
     tmp_path: Path,
 ) -> None:
     class SlowTraceStore(FileTraceStore):
-        def _write_temporary(self, trace: Any) -> Path:
+        def _write_temporary(
+            self,
+            trace: Any,
+            request_started: float | None = None,
+        ) -> Path:
             time.sleep(0.05)
-            return super()._write_temporary(trace)
+            return super()._write_temporary(trace, request_started)
 
     loop = AgentLoop(
         model_client=FakeModelClient([turn("resp-1", text="All clear.")]),
@@ -554,8 +561,55 @@ async def test_agent_loop_includes_trace_persistence_in_total_deadline(
         "code": "TRACE_PERSISTENCE_TIMEOUT",
         "message": "Trace persistence exceeded the total request deadline.",
     }
+    assert trace.persisted is False
+    assert trace.persistenceError == {
+        "code": "TRACE_PERSISTENCE_TIMEOUT",
+        "message": "Trace persistence exceeded the total request deadline.",
+    }
     import asyncio
 
     await asyncio.sleep(0.06)
     assert not (tmp_path / "trace-slow-persistence.json").exists()
     assert list(tmp_path.glob(".trace-slow-persistence.*.tmp")) == []
+
+
+async def test_agent_loop_reports_execution_and_persistence_failures(
+    tmp_path: Path,
+) -> None:
+    class SlowModel:
+        async def create(self, **_: Any) -> ModelTurn:
+            import asyncio
+
+            await asyncio.sleep(0.05)
+            return turn("late", text="Too late")
+
+    class SlowTraceStore(FileTraceStore):
+        def _write_temporary(
+            self,
+            trace: Any,
+            request_started: float | None = None,
+        ) -> Path:
+            time.sleep(0.05)
+            return super()._write_temporary(trace, request_started)
+
+    loop = AgentLoop(
+        model_client=SlowModel(),
+        tool_router=FakeToolRouter([]),
+        trace_store=SlowTraceStore(tmp_path),
+        model="test-model",
+        max_iterations=2,
+        request_timeout_seconds=0.02,
+    )
+
+    trace = await loop.run("Investigate", trace_id="trace-combined-timeout")
+
+    assert trace.status is TraceStatus.INCOMPLETE
+    assert trace.error == {
+        "code": "REQUEST_TIMEOUT",
+        "message": "Agent execution exhausted its 0.018 second budget.",
+    }
+    assert trace.persisted is False
+    assert trace.persistenceError == {
+        "code": "TRACE_PERSISTENCE_TIMEOUT",
+        "message": "Trace persistence exceeded the total request deadline.",
+    }

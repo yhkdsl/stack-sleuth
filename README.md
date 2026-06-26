@@ -176,8 +176,8 @@ This repository is designed for:
 
 ## Official OpenAI References
 
-- Responses API: https://platform.openai.com/docs/api-reference/responses
-- Function calling: https://platform.openai.com/docs/guides/function-calling
-- Agents SDK: https://platform.openai.com/docs/guides/agents
-- Safety best practices: https://platform.openai.com/docs/guides/safety-best-practices
-- Production best practices: https://platform.openai.com/docs/guides/production-best-practices
+- Responses API: https://developers.openai.com/api/reference/resources/responses/methods/create
+- Function calling: https://developers.openai.com/api/docs/guides/function-calling
+- Agents SDK: https://developers.openai.com/api/docs/guides/agents
+- Safety best practices: https://developers.openai.com/api/docs/guides/safety-best-practices
+- Production best practices: https://developers.openai.com/api/docs/guides/production-best-practices

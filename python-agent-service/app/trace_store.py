@@ -1,6 +1,7 @@
 import asyncio
 import re
 import tempfile
+import time
 from pathlib import Path
 
 from app.models import AgentTrace, RedactionEvent
@@ -25,12 +26,19 @@ class FileTraceStore:
         ]
         return AgentTrace.model_validate(payload)
 
-    async def save(self, trace: AgentTrace) -> AgentTrace:
+    async def save(
+        self,
+        trace: AgentTrace,
+        *,
+        request_started: float | None = None,
+    ) -> AgentTrace:
         if not _SAFE_TRACE_ID.fullmatch(trace.traceId):
             raise ValueError("invalid trace ID")
         sanitized = self.sanitize(trace)
+        sanitized.persisted = True
+        sanitized.persistenceError = None
         write_task = asyncio.create_task(
-            asyncio.to_thread(self._write_temporary, sanitized)
+            asyncio.to_thread(self._write_temporary, sanitized, request_started)
         )
         try:
             temporary_path = await asyncio.shield(write_task)
@@ -51,7 +59,11 @@ class FileTraceStore:
             raise TraceNotFoundError(trace_id) from exception
         return AgentTrace.model_validate_json(raw)
 
-    def _write_temporary(self, trace: AgentTrace) -> Path:
+    def _write_temporary(
+        self,
+        trace: AgentTrace,
+        request_started: float | None = None,
+    ) -> Path:
         self._directory.mkdir(parents=True, exist_ok=True)
         with tempfile.NamedTemporaryFile(
             mode="w",
@@ -63,6 +75,15 @@ class FileTraceStore:
         ) as temporary:
             temporary.write(trace.model_dump_json(indent=2))
             temporary.write("\n")
+            temporary.flush()
+            if request_started is not None:
+                trace.totalDurationMs = round(
+                    (time.perf_counter() - request_started) * 1000
+                )
+                temporary.seek(0)
+                temporary.truncate()
+                temporary.write(trace.model_dump_json(indent=2))
+                temporary.write("\n")
             temporary_path = Path(temporary.name)
         return temporary_path
 

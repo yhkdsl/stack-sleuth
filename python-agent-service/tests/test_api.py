@@ -12,7 +12,10 @@ from app.trace_store import FileTraceStore
 def trace(status: TraceStatus = TraceStatus.COMPLETED) -> AgentTrace:
     error = None
     if status is TraceStatus.INCOMPLETE:
-        error = {"code": "REQUEST_TIMEOUT", "message": "Agent request exceeded 30 seconds."}
+        error = {
+            "code": "REQUEST_TIMEOUT",
+            "message": "Agent execution exhausted its 27 second budget.",
+        }
     return AgentTrace(
         traceId="trace_api_123",
         status=status,

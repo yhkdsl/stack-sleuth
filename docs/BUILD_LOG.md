@@ -208,3 +208,34 @@ are all part of the runtime contract.
 **Documentation updated:** `python-agent-service/README.md`,
 `docs/TUTORIAL.md`, `docs/ARCHITECTURE.md`, and
 `docs/articles/03-openai-function-calling-agent-loop.ko.md`.
+
+## 2026-06-26: Preserve Both Execution and Persistence Failures
+
+**Related work:** PR #11 review hardening
+
+**Problem:** When agent execution and trace persistence both timed out, the
+response preserved only `REQUEST_TIMEOUT` while returning a trace ID that could
+not be replayed. The duration field was also finalized before persistence, and
+the provider's machine-readable failed-response code was collected but unused.
+
+**Evidence:** A combined-failure regression reproduced
+`error.code=REQUEST_TIMEOUT` with no trace file. A delayed store showed that
+`totalDurationMs` omitted the main persistence write.
+
+**Decision:** Add an explicit `persisted` flag and a separate
+`persistenceError`, preserve the primary execution error, finalize duration
+inside the file store after its first write pass, use an execution-budget
+timeout message, and include only the provider's machine-readable error code.
+Provider error messages remain excluded.
+
+**Verification:** Regression tests cover successful persistence, persistence
+timeout, combined execution and persistence timeout, persisted duration, and
+provider error-code propagation.
+
+**Lesson for readers:** A trace ID is not proof that a trace exists.
+Observability APIs must distinguish execution outcome from evidence durability
+so clients do not offer broken replay links.
+
+**Documentation updated:** `python-agent-service/README.md`,
+`docs/TUTORIAL.md`, `docs/DEVELOPMENT_PLAN.md`, and
+`docs/articles/03-openai-function-calling-agent-loop.ko.md`.

@@ -39,8 +39,12 @@ async def test_trace_store_persists_only_redacted_json(tmp_path: Path) -> None:
     assert "secret-token" not in raw
     assert stored.userRequest == "Investigate [REDACTED]"
     assert stored.finalAnswer == "[REDACTED]"
+    assert stored.persisted is True
+    assert stored.persistenceError is None
     assert len(stored.redactions) >= 2
-    assert json.loads(raw)["traceId"] == "trace_test_123"
+    payload = json.loads(raw)
+    assert payload["traceId"] == "trace_test_123"
+    assert payload["persisted"] is True
 
 
 async def test_trace_store_loads_trace_without_external_calls(tmp_path: Path) -> None:
@@ -72,3 +76,29 @@ async def test_trace_store_rejects_unsafe_trace_id_before_persistence(
 
     with pytest.raises(ValueError, match="invalid trace ID"):
         await store.save(trace)
+
+
+async def test_trace_store_persists_request_duration_after_write_delay(
+    tmp_path: Path,
+) -> None:
+    import time
+    from typing import Any
+
+    class SlowTraceStore(FileTraceStore):
+        def _write_temporary(
+            self,
+            trace: Any,
+            request_started: float | None = None,
+        ) -> Path:
+            time.sleep(0.03)
+            return super()._write_temporary(trace, request_started)
+
+    store = SlowTraceStore(tmp_path)
+    request_started = time.perf_counter()
+
+    stored = await store.save(build_trace(), request_started=request_started)
+    loaded = await store.get("trace_test_123")
+
+    assert stored.totalDurationMs is not None
+    assert stored.totalDurationMs >= 30
+    assert loaded.totalDurationMs == stored.totalDurationMs

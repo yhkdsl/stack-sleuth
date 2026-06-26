@@ -79,6 +79,8 @@ class AgentLoop:
             estimatedCost=None,
             pricingMetadata=None,
             totalDurationMs=None,
+            persisted=False,
+            persistenceError=None,
             confidence=None,
             finalAnswer=None,
         )
@@ -98,7 +100,8 @@ class AgentLoop:
             trace.error = {
                 "code": "REQUEST_TIMEOUT",
                 "message": (
-                    f"Agent request exceeded {self._request_timeout_seconds:g} seconds."
+                    "Agent execution exhausted its "
+                    f"{execution_timeout:g} second budget."
                 ),
             }
         except ModelCallError:
@@ -121,17 +124,23 @@ class AgentLoop:
         if remaining > 0:
             try:
                 async with asyncio.timeout(remaining):
-                    return await self._trace_store.save(trace)
+                    return await self._trace_store.save(
+                        trace,
+                        request_started=started,
+                    )
             except TimeoutError:
                 pass
 
+        persistence_error = {
+            "code": "TRACE_PERSISTENCE_TIMEOUT",
+            "message": "Trace persistence exceeded the total request deadline.",
+        }
+        trace.persisted = False
+        trace.persistenceError = persistence_error
         if trace.error is None:
             trace.status = TraceStatus.INCOMPLETE
             trace.finalAnswer = None
-            trace.error = {
-                "code": "TRACE_PERSISTENCE_TIMEOUT",
-                "message": "Trace persistence exceeded the total request deadline.",
-            }
+            trace.error = persistence_error
         trace.completedAt = _now()
         trace.totalDurationMs = round((time.perf_counter() - started) * 1000)
         return self._trace_store.sanitize(trace)
@@ -163,6 +172,8 @@ class AgentLoop:
                     "code": "MODEL_RESPONSE_FAILED",
                     "message": "The model returned a failed response.",
                 }
+                if turn.response_error_code:
+                    trace.error["providerCode"] = turn.response_error_code
                 return
 
             if not turn.function_calls:
