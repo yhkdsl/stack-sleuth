@@ -229,12 +229,27 @@ curl http://localhost:8000/agent/traces/<trace_id>
 API key가 없어도 서비스는 시작하고 저장된 trace를 replay할 수 있다. 이때 live
 run은 secret을 요구하는 대신 `AGENT_NOT_CONFIGURED` 구조화 오류를 반환한다.
 
+Issue #4에서 추가한 `ops-agent` CLI는 이 API 위에 얇게 올라간다.
+
+```bash
+uv run ops-agent ask "Investigate errors from the last hour" --verbose
+uv run ops-agent trace replay <trace_id>
+```
+
+CLI는 Spring internal endpoint를 직접 호출하지 않는다. `ask`는
+`POST /agent/run`, `trace show`와 `trace replay`는
+`GET /agent/traces/{traceId}`만 호출한다. 이는 터미널 사용성을 높이면서도
+실행 권한과 trace 소유권을 FastAPI에 남기는 선택이다. 터미널 출력은 최종 답변을
+먼저 보여주고, trace ID와 compact evidence를 뒤따라 출력한다. `--verbose`는
+tool call, guardrail rejection, redaction, token usage를 펼쳐 보여준다.
+
 ## 현재 제한사항
 
 - live OpenAI 호출은 자동화된 검증 증거에 포함되지 않았다.
 - 모델이 어떤 도구를 선택하는지에 대한 정량 eval은 아직 없다.
 - trace 저장소는 로컬 단일 노드 MVP 구현이다.
-- CLI와 React trace dashboard는 아직 구현되지 않았다.
+- React trace dashboard는 아직 구현되지 않았다.
+- CLI는 구현됐지만 live OpenAI 호출 품질은 자동화된 검증 증거에 포함되지 않았다.
 - 비용은 검증된 pricing metadata가 없으므로 추정하지 않는다.
 
 이 제한을 명시하는 이유는 포트폴리오에서 “작동하는 코드”와 “계획된 제품”을

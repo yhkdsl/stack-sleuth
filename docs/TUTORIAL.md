@@ -9,7 +9,7 @@ The finished local system will contain:
 1. A Spring Boot server exposing approved backend tools.
 2. PostgreSQL with deterministic incident data and a read-only tool account.
 3. A Python service running an OpenAI tool-calling loop.
-4. A terminal CLI for starting investigations.
+4. A terminal CLI for starting and replaying investigations.
 5. A React dashboard for inspecting and replaying agent traces.
 
 The project is not a generic chatbot. The model receives bounded tools, while application code enforces authentication, SQL policy, timeouts, redaction, and audit records.
@@ -128,10 +128,53 @@ The expected scenario can select this tool path:
 3. final incident summary with trace ID
 
 The exact calls remain a model decision, so automated tests use scripted model
-responses instead of asserting nondeterministic live behavior. The terminal
-CLI is still planned.
+responses instead of asserting nondeterministic live behavior.
 
-## 6. Inspect and Replay the Trace
+## 6. Use the Terminal CLI
+
+The CLI is implemented in `python-agent-service` and talks only to FastAPI.
+Keep the FastAPI service running, then run:
+
+```bash
+uv run ops-agent ask "Investigate errors from the last hour and summarize the evidence."
+```
+
+Expected output shape:
+
+```text
+Final answer
+...
+
+Trace: trace_...
+Status: completed
+
+Evidence
+- search_error_logs: success (... ms)
+- run_read_only_query: success (... ms)
+```
+
+For detailed trace output:
+
+```bash
+uv run ops-agent ask "Investigate errors from the last hour" --verbose
+```
+
+`--verbose` prints ordered tool calls, guardrail rejections, redactions, and
+token usage. To print the planned dashboard URL:
+
+```bash
+uv run ops-agent ask "Investigate errors from the last hour" --open-trace
+```
+
+The dashboard is still planned, so `--open-trace` prints a URL instead of
+assuming that a browser target exists. Configure local endpoints when needed:
+
+```bash
+export STACKSLEUTH_AGENT_URL=http://localhost:8000
+export STACKSLEUTH_DASHBOARD_URL=http://localhost:3000
+```
+
+## 7. Inspect and Replay the Trace
 
 The trace API is implemented. Replay a trace returned by `POST /agent/run` only
 when its `persisted` field is `true`:
@@ -143,6 +186,16 @@ curl http://localhost:8000/agent/traces/<trace_id>
 Replay reads the redacted local JSON trace and does not call OpenAI or Spring.
 When `persisted` is `false`, inspect `persistenceError` instead of presenting a
 replay link. The React dashboard is still planned.
+
+The CLI wraps the same API:
+
+```bash
+uv run ops-agent trace show <trace_id>
+uv run ops-agent trace replay <trace_id>
+```
+
+Both commands call only `GET /agent/traces/{traceId}`. They do not call OpenAI
+or Spring.
 
 The dashboard will eventually show:
 
@@ -179,6 +232,9 @@ Check the implementation status in `README.md` and the relevant GitHub issue. Pl
 Set both `OPENAI_API_KEY` and `AGENT_MODEL` before starting Uvicorn. The service
 intentionally starts without credentials so trace replay remains available,
 but live runs return `AGENT_NOT_CONFIGURED`.
+
+The CLI prints a sanitized structured error for this response. It does not echo
+the raw credential variable names from the API error message.
 
 ### A live request times out or stops before an answer
 

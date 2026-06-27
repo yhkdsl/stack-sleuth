@@ -65,6 +65,31 @@ The service can start without an OpenAI API key so saved traces remain
 replayable. Live `POST /agent/run` requests then return a structured HTTP `503`
 configuration error.
 
+## Terminal CLI
+
+This package also exposes the `ops-agent` command. It is a thin client over the
+FastAPI service, not a separate tool executor:
+
+```bash
+uv run ops-agent ask "Investigate errors from the last hour"
+uv run ops-agent ask "Investigate errors from the last hour" --verbose
+uv run ops-agent ask "Investigate errors from the last hour" --open-trace
+uv run ops-agent trace show <trace_id>
+uv run ops-agent trace replay <trace_id>
+```
+
+Environment variables:
+
+- `STACKSLEUTH_AGENT_URL`, default `http://localhost:8000`
+- `STACKSLEUTH_DASHBOARD_URL`, default `http://localhost:3000`
+- `STACKSLEUTH_AGENT_TIMEOUT_SECONDS`, default `10`
+
+`ask` calls only `POST /agent/run`. `trace show` and `trace replay` call only
+`GET /agent/traces/{traceId}`. The CLI never calls Spring internal endpoints.
+`--open-trace` prints the dashboard trace URL; the dashboard implementation is
+still planned. Terminal output applies a defensive redaction pass before
+printing trace data or structured errors.
+
 ## Trace Persistence Contract
 
 Every agent response includes two persistence fields:

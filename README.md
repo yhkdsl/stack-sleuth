@@ -8,7 +8,7 @@ The project concept is simple: a developer types an operations question in a ter
 
 **One-line pitch:** An agentic ops copilot for backend tool calling.
 
-**Current status:** MVP implementation in progress. The Spring Boot tool server, deterministic PostgreSQL demo data, and bounded Python agent service are implemented. The CLI and dashboard are still planned, and a live OpenAI run is not part of the checked-in automated verification.
+**Current status:** MVP implementation in progress. The Spring Boot tool server, deterministic PostgreSQL demo data, bounded Python agent service, and terminal CLI are implemented. The dashboard is still planned, and a live OpenAI run is not part of the checked-in automated verification.
 
 **What this demonstrates:**
 
@@ -54,13 +54,16 @@ Expected result:
   trace redaction, and HTTP replay.
 - The mock example prints a completed investigation trace without credentials.
 
-The eventual end-to-end product flow remains:
+The terminal entry point is implemented:
 
 ```bash
-ops-agent ask "최근 1시간 에러 분석해줘" --open-trace
+uv run ops-agent ask "최근 1시간 에러 분석해줘" --open-trace
 ```
 
-The CLI and trace dashboard required for that command are planned work.
+The command calls the FastAPI agent service, prints the final answer first,
+shows compact evidence and the trace ID, and prints the planned dashboard trace
+URL when `--open-trace` is set. The trace dashboard behind that URL is still
+planned.
 
 ## Implementation Status
 
@@ -71,7 +74,7 @@ The CLI and trace dashboard required for that command are planned work.
 | Spring Boot tool server | Initial implementation complete: internal auth, health tool, log-search endpoint, database-backed read-only SQL, audit sink, and tests |
 | PostgreSQL demo data | Implemented: Docker Compose, deterministic fixtures, correlated sample logs, and database-enforced read-only role |
 | Python FastAPI agent service | Initial implementation complete: Responses API loop, strict tools, bounded execution, structured Spring errors, redacted local traces, API endpoints, and tests |
-| CLI | Not started |
+| CLI | Initial implementation complete: `ask`, `--verbose`, `--open-trace`, `trace show`, `trace replay`, structured API errors, and tests |
 | React/Next.js trace dashboard | Not started |
 | Demo recording and trace-replay assets | Not started |
 | Beginner tutorial and DX content program | Structure and initial manuscripts documented; publication evidence is still in progress |
@@ -164,6 +167,29 @@ curl http://localhost:8000/agent/traces/<trace_id>
 
 See the [agent-service guide](python-agent-service/README.md) and
 [beginner tutorial](docs/TUTORIAL.md) for boundaries and current limitations.
+
+## Terminal CLI
+
+The `ops-agent` CLI is packaged with the Python agent service and talks only to
+FastAPI:
+
+```bash
+cd python-agent-service
+uv sync --locked --all-groups
+uv run ops-agent ask "Investigate errors from the last hour" --verbose
+uv run ops-agent trace show <trace_id>
+uv run ops-agent trace replay <trace_id>
+```
+
+Configure alternate local endpoints with:
+
+```bash
+export STACKSLEUTH_AGENT_URL=http://localhost:8000
+export STACKSLEUTH_DASHBOARD_URL=http://localhost:3000
+```
+
+The CLI does not call Spring internal tool endpoints. Replay loads a persisted
+trace through `GET /agent/traces/{traceId}` and does not call OpenAI or Spring.
 
 ## Intended Audience
 

@@ -11,6 +11,13 @@ dependencies = [
     "uvicorn[standard]",
 ]
 
+[project.scripts]
+ops-agent = "ops_agent.main:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
 [dependency-groups]
 dev = [
     "pytest",
@@ -34,4 +41,7 @@ target-version = "py312"
 select = ["E", "F", "I", "UP", "B", "SIM", "RUF"]
 
 [tool.uv]
-package = false
+package = true
+
+[tool.hatch.build.targets.wheel]
+packages = ["app", "ops_agent"]
