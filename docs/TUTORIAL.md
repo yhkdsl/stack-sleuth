@@ -19,7 +19,8 @@ The project is not a generic chatbot. The model receives bounded tools, while ap
 - Git
 - Java 21
 - Docker Desktop or another Docker-compatible runtime
-- Python 3.12 or later, once the agent service is implemented
+- Python 3.12
+- [uv](https://docs.astral.sh/uv/)
 - Node.js, once the dashboard is implemented
 - An OpenAI API key, only for live agent runs
 
@@ -85,27 +86,65 @@ examples/curl/rejected-sql.sh
 
 The first request returns the synthetic `user_id=42` incident row through the restricted database account. The second returns HTTP `400` with a structured `SQL_WRITE_BLOCKED` error. The database remains unchanged.
 
-## 5. Run a Live Agent Investigation
+## 5. Verify the Agent Loop Without Credentials
 
-**Status: Planned.** This section will be activated after the Python agent service and CLI are implemented.
-
-The intended command is:
+The Python service and HTTP API are implemented. First run the deterministic
+mock path, which needs neither an OpenAI API key nor a running Spring server:
 
 ```bash
-ops-agent ask "최근 1시간 동안 에러가 있었는지 확인하고 원인을 요약해줘" --open-trace
+cd python-agent-service
+uv sync --locked --all-groups
+uv run ruff check .
+uv run pytest -q --cov=app --cov-report=term-missing
+uv run python ../examples/python-agent/mock_investigation.py
 ```
 
-The expected tool path is:
+The example uses the production `AgentLoop` and `FileTraceStore` with scripted
+model and tool adapters. It prints a completed trace and writes temporary data
+outside the repository.
+
+For a live run, keep the Spring server running and set an OpenAI API key plus
+an explicit Responses API model available to your project:
+
+```bash
+set -a
+source ../.env
+set +a
+uv run uvicorn app.main:app --reload --port 8000
+```
+
+In another terminal:
+
+```bash
+curl -X POST http://localhost:8000/agent/run \
+  -H 'Content-Type: application/json' \
+  -d '{"request":"Investigate errors from the last hour and summarize the evidence."}'
+```
+
+The expected scenario can select this tool path:
 
 1. `search_error_logs`
 2. `run_read_only_query`
 3. final incident summary with trace ID
 
+The exact calls remain a model decision, so automated tests use scripted model
+responses instead of asserting nondeterministic live behavior. The terminal
+CLI is still planned.
+
 ## 6. Inspect and Replay the Trace
 
-**Status: Planned.** This section will be activated after the React dashboard is implemented.
+The trace API is implemented. Replay a trace returned by `POST /agent/run` only
+when its `persisted` field is `true`:
 
-The dashboard will show:
+```bash
+curl http://localhost:8000/agent/traces/<trace_id>
+```
+
+Replay reads the redacted local JSON trace and does not call OpenAI or Spring.
+When `persisted` is `false`, inspect `persistenceError` instead of presenting a
+replay link. The React dashboard is still planned.
+
+The dashboard will eventually show:
 
 - original request and final answer
 - ordered tool calls and results
@@ -134,6 +173,29 @@ This command deletes only the local deterministic demo database.
 ### A feature described here does not exist yet
 
 Check the implementation status in `README.md` and the relevant GitHub issue. Planned sections are intentionally retained so the tutorial evolves without misrepresenting project status.
+
+### Live agent requests return HTTP 503
+
+Set both `OPENAI_API_KEY` and `AGENT_MODEL` before starting Uvicorn. The service
+intentionally starts without credentials so trace replay remains available,
+but live runs return `AGENT_NOT_CONFIGURED`.
+
+### A live request times out or stops before an answer
+
+Inspect the returned trace. `REQUEST_TIMEOUT` means the agent execution budget
+reserved within `REQUEST_TIMEOUT_SECONDS` was exhausted;
+`MAX_ITERATIONS_REACHED` means the model exhausted `AGENT_MAX_ITERATIONS`. A
+Spring timeout appears on the individual tool result as `TOOL_TIMEOUT`.
+`MODEL_RESPONSE_INCOMPLETE` records a Responses API incomplete status such as
+`max_output_tokens`, while `EMPTY_MODEL_OUTPUT` prevents an empty response from
+being reported as success.
+
+Requests longer than `MAX_USER_REQUEST_CHARS` are rejected before a model call.
+`MAX_OUTPUT_TOKENS` bounds each model response. The total request deadline
+reserves time for trace persistence; a storage overrun returns
+`TRACE_PERSISTENCE_TIMEOUT` in `persistenceError` instead of extending the
+request indefinitely. If execution had already failed, its code remains in
+`error`; check `persisted` before attempting replay.
 
 ## Next Reading
 

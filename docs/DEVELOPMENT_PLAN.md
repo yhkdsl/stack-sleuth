@@ -325,12 +325,17 @@ Controls:
 - `tool_timeout_seconds=5`
 - `request_timeout_seconds=30`
 - `max_tool_output_chars=8000`
+- `max_user_request_chars=4000`
+- `max_output_tokens=1200`
 
 Tests:
 
 - Mock model asks for log search, then SQL query, then final answer.
 - Loop stops at final answer.
+- Incomplete, failed, and empty model responses cannot become successful traces.
 - Loop stops with clear error after max iterations.
+- Sensitive tool values are redacted before the next model call.
+- Trace persistence cannot extend the request beyond the total deadline.
 - Tool errors are returned to the model as structured tool output.
 
 ### 3.3 Trace Store
@@ -352,6 +357,8 @@ Trace fields:
 - `estimatedCost`
 - `pricingMetadata`
 - `totalDurationMs`
+- `persisted`
+- `persistenceError`
 - `confidence`
 - `finalAnswer`
 
@@ -359,11 +366,14 @@ Storage:
 
 - MVP: local JSON files under `var/traces`.
 - Later: PostgreSQL table.
+- Production hardening: add configurable retention and deletion.
 
 Validation:
 
-- Every `/agent/run` returns a trace ID.
-- Trace can be replayed without calling OpenAI.
+- Every started `/agent/run` returns a trace ID and persistence status.
+- A trace with `persisted=true` can be replayed without calling OpenAI.
+- A trace with `persisted=false` exposes a structured persistence error and
+  must not be presented as replayable.
 - Trace JSON contains enough information for both CLI verbose output and web dashboard rendering.
 - Trace JSON does not contain API keys, DB credentials, access tokens, or unredacted obvious personal data.
 

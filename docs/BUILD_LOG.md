@@ -141,3 +141,101 @@ Documentation updated:
 **Lesson for readers:** Documentation is a versioned product surface. Examples and implementation-status claims should fail CI when they stop matching the software.
 
 **Documentation updated:** `docs/CONTENT_STRATEGY.md`, `docs/TUTORIAL.md`, `examples/curl/`, and `.github/workflows/spring-tool-server-ci.yml`.
+
+## 2026-06-25: Carry Stateless Reasoning Context Without Storing Responses
+
+**Related work:** Issue #3
+
+**Problem:** A multi-turn Responses API loop must preserve model output between tool calls, but the project should not depend on server-side response retention.
+
+**Evidence:** OpenAI's conversation-state and reasoning guidance requires a stateless client to send prior output items again. For reasoning models with storage disabled, encrypted reasoning content must also be requested and carried forward.
+
+**Root cause:** A simple loop that returns only `function_call_output` loses the response items that connect one reasoning turn to the next.
+
+**Decision:** Set `store=false`, request `reasoning.encrypted_content`, append every returned output item plus the tool result to the next input, and keep the original user request at the start of the accumulated history. Disable parallel tool calls and request at most one tool call per response so execution remains auditable.
+
+**Verification:** Mocked SDK tests inspect the exact Responses API arguments. Loop tests verify that the next model request contains the original request, previous function call, and matching function output. The integration test exercises the same continuation path through FastAPI, the Spring router, and trace replay.
+
+**Lesson for readers:** Statelessness is not the absence of state. It moves conversation-state ownership into application code, where retention and audit behavior can be made explicit.
+
+**Documentation updated:** `python-agent-service/README.md`, `docs/TUTORIAL.md`, and `docs/articles/03-openai-function-calling-agent-loop.ko.md`.
+
+## 2026-06-25: Redact Secrets Without Destroying Token Metrics
+
+**Related work:** Issue #3
+
+**Problem:** The first recursive redaction rule treated any field name containing `token` as sensitive, which also redacted legitimate observability fields such as `totalTokens`.
+
+**Evidence:** Trace-store tests expected usage counters to remain integers but received `[REDACTED]`.
+
+**Root cause:** Substring matching conflated credentials with metrics. In an agent trace, `accessToken` is sensitive while `inputTokens` and `totalTokens` are operational measurements.
+
+**Decision:** Normalize field names and compare them against an explicit credential-key set. Scan string values for API-key, bearer-token, email, and phone patterns before tool output is returned to the model, then repeat the scan immediately before persistence.
+
+**Verification:** Redaction tests cover nested credentials and personal data while requiring usage metrics to survive unchanged. The HTTP integration test injects a synthetic email-shaped value into a mocked Spring result and verifies that the model continuation, persisted trace, and replayed trace contain `[REDACTED]`.
+
+**Lesson for readers:** Redaction is a data-classification problem, not a keyword search. Over-redaction can silently break the observability needed to operate an agent.
+
+**Documentation updated:** This build log and `docs/articles/03-openai-function-calling-agent-loop.ko.md`.
+
+## 2026-06-25: Treat Model Completion and Persistence as Bounded Contracts
+
+**Related work:** PR #11 review hardening
+
+**Problem:** A Responses API result with `status=incomplete` could have no tool
+call and an empty output string, which the first loop implementation reported
+as a successful trace. The request timeout also ended before local trace
+persistence, and request/output size had no explicit bound.
+
+**Evidence:** A regression fixture with
+`incomplete_details.reason=max_output_tokens` produced `status=completed`,
+`finalAnswer=""`, and no error. A delayed trace store extended a request beyond
+its configured deadline.
+
+**Decision:** Preserve response status metadata in the adapter, map incomplete,
+failed, and empty responses to explicit trace failures, reserve part of the
+total deadline for persistence, reject oversized user requests before model
+execution, and pass `MAX_OUTPUT_TOKENS` to every Responses API call.
+
+**Verification:** Tests cover incomplete and failed responses, empty completed
+responses, persistence timeout, request-length rejection, output-token
+configuration, and redaction before model continuation.
+
+**Lesson for readers:** A bounded agent must constrain the whole lifecycle, not
+only the tool loop. Provider status, input size, output size, and trace storage
+are all part of the runtime contract.
+
+**Documentation updated:** `python-agent-service/README.md`,
+`docs/TUTORIAL.md`, `docs/ARCHITECTURE.md`, and
+`docs/articles/03-openai-function-calling-agent-loop.ko.md`.
+
+## 2026-06-26: Preserve Both Execution and Persistence Failures
+
+**Related work:** PR #11 review hardening
+
+**Problem:** When agent execution and trace persistence both timed out, the
+response preserved only `REQUEST_TIMEOUT` while returning a trace ID that could
+not be replayed. The duration field was also finalized before persistence, and
+the provider's machine-readable failed-response code was collected but unused.
+
+**Evidence:** A combined-failure regression reproduced
+`error.code=REQUEST_TIMEOUT` with no trace file. A delayed store showed that
+`totalDurationMs` omitted the main persistence write.
+
+**Decision:** Add an explicit `persisted` flag and a separate
+`persistenceError`, preserve the primary execution error, finalize duration
+inside the file store after its first write pass, use an execution-budget
+timeout message, and include only the provider's machine-readable error code.
+Provider error messages remain excluded.
+
+**Verification:** Regression tests cover successful persistence, persistence
+timeout, combined execution and persistence timeout, persisted duration, and
+provider error-code propagation.
+
+**Lesson for readers:** A trace ID is not proof that a trace exists.
+Observability APIs must distinguish execution outcome from evidence durability
+so clients do not offer broken replay links.
+
+**Documentation updated:** `python-agent-service/README.md`,
+`docs/TUTORIAL.md`, `docs/DEVELOPMENT_PLAN.md`, and
+`docs/articles/03-openai-function-calling-agent-loop.ko.md`.

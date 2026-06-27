@@ -1,6 +1,6 @@
 # StackSleuth
 
-StackSleuth is a portfolio-grade reference implementation plan for Java/Spring backend developers who want to demonstrate production-minded OpenAI tool calling.
+StackSleuth is a portfolio-grade reference implementation in progress for Java/Spring backend developers who want to demonstrate production-minded OpenAI tool calling.
 
 The project concept is simple: a developer types an operations question in a terminal, and an AI agent investigates the backend by safely calling approved Spring Boot tools such as server health checks, error-log search, and read-only SQL inspection. A web dashboard then visualizes the agent trace so engineers can inspect tool calls, guardrail decisions, latency, token usage, and final evidence. The goal is not to build another chatbot. The goal is to show how to delegate bounded backend investigation work to an AI agent with guardrails, auditability, and developer-friendly documentation.
 
@@ -8,7 +8,7 @@ The project concept is simple: a developer types an operations question in a ter
 
 **One-line pitch:** An agentic ops copilot for backend tool calling.
 
-**Current status:** MVP implementation in progress. The Spring Boot tool server and deterministic PostgreSQL demo data are implemented; the Python agent service, CLI, and dashboard are still planned.
+**Current status:** MVP implementation in progress. The Spring Boot tool server, deterministic PostgreSQL demo data, and bounded Python agent service are implemented. The CLI and dashboard are still planned, and a live OpenAI run is not part of the checked-in automated verification.
 
 **What this demonstrates:**
 
@@ -34,23 +34,33 @@ The project concept is simple: a developer types an operations question in a ter
 - [Build Log](docs/BUILD_LOG.md)
 - [Korean Article Series with English Summaries](docs/articles/README.md)
 
-## Planned Quickstart
+## Current Quickstart
 
-The implementation should eventually support this local flow:
+The implemented backend flow can be verified without an OpenAI API key:
 
 ```bash
 cp .env.example .env
-make up
-make demo
-ops-agent ask "최근 1시간 에러 분석해줘" --open-trace
+./gradlew :spring-tool-server:test
+cd python-agent-service
+uv sync --locked --all-groups
+uv run pytest -q
+uv run python ../examples/python-agent/mock_investigation.py
 ```
 
 Expected result:
 
-- The CLI prints an incident-style answer.
-- The agent calls log search and read-only SQL tools.
-- The dashboard opens a replayable trace.
-- Destructive SQL requests are blocked and visible in the trace.
+- Spring tests verify internal authentication, bounded tools, and SQL policy.
+- Python tests exercise mocked OpenAI and Spring calls, timeout boundaries,
+  trace redaction, and HTTP replay.
+- The mock example prints a completed investigation trace without credentials.
+
+The eventual end-to-end product flow remains:
+
+```bash
+ops-agent ask "최근 1시간 에러 분석해줘" --open-trace
+```
+
+The CLI and trace dashboard required for that command are planned work.
 
 ## Implementation Status
 
@@ -60,7 +70,7 @@ Expected result:
 | Architecture | Documented |
 | Spring Boot tool server | Initial implementation complete: internal auth, health tool, log-search endpoint, database-backed read-only SQL, audit sink, and tests |
 | PostgreSQL demo data | Implemented: Docker Compose, deterministic fixtures, correlated sample logs, and database-enforced read-only role |
-| Python FastAPI agent service | Not started |
+| Python FastAPI agent service | Initial implementation complete: Responses API loop, strict tools, bounded execution, structured Spring errors, redacted local traces, API endpoints, and tests |
 | CLI | Not started |
 | React/Next.js trace dashboard | Not started |
 | Demo recording and trace-replay assets | Not started |
@@ -115,6 +125,46 @@ curl -X POST http://localhost:8080/internal/tools/sql/read-only \
   -d '{"sql":"SELECT id, account_status, profile_img FROM users WHERE id = 42"}'
 ```
 
+## Python Agent Service
+
+The FastAPI service lives in `python-agent-service`. It uses an explicit
+Responses API loop rather than hiding orchestration inside a framework:
+
+```bash
+cd python-agent-service
+uv sync --locked --all-groups
+uv run ruff check .
+uv run pytest -q --cov=app --cov-report=term-missing
+uv run python ../examples/python-agent/mock_investigation.py
+```
+
+For a live investigation, start the Spring server, set `OPENAI_API_KEY`,
+`AGENT_MODEL`, and `TOOL_SERVER_TOKEN` in the untracked `.env`, then run:
+
+```bash
+set -a
+source ../.env
+set +a
+uv run uvicorn app.main:app --reload --port 8000
+```
+
+In another terminal:
+
+```bash
+curl -X POST http://localhost:8000/agent/run \
+  -H 'Content-Type: application/json' \
+  -d '{"request":"Investigate errors from the last hour and summarize the evidence."}'
+```
+
+Replay the returned trace without another OpenAI or Spring call:
+
+```bash
+curl http://localhost:8000/agent/traces/<trace_id>
+```
+
+See the [agent-service guide](python-agent-service/README.md) and
+[beginner tutorial](docs/TUTORIAL.md) for boundaries and current limitations.
+
 ## Intended Audience
 
 This repository is designed for:
@@ -126,8 +176,8 @@ This repository is designed for:
 
 ## Official OpenAI References
 
-- Responses API: https://platform.openai.com/docs/api-reference/responses
-- Function calling: https://platform.openai.com/docs/guides/function-calling
-- Agents SDK: https://platform.openai.com/docs/guides/agents
-- Safety best practices: https://platform.openai.com/docs/guides/safety-best-practices
-- Production best practices: https://platform.openai.com/docs/guides/production-best-practices
+- Responses API: https://developers.openai.com/api/reference/resources/responses/methods/create
+- Function calling: https://developers.openai.com/api/docs/guides/function-calling
+- Agents SDK: https://developers.openai.com/api/docs/guides/agents
+- Safety best practices: https://developers.openai.com/api/docs/guides/safety-best-practices
+- Production best practices: https://developers.openai.com/api/docs/guides/production-best-practices

@@ -28,6 +28,7 @@ __pycache__/
 venv/
 .mypy_cache/
 .ruff_cache/
+.coverage
 
 # Node / frontend
 node_modules/

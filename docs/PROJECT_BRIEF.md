@@ -144,10 +144,13 @@ Responsible for:
 - Calling the OpenAI Responses API
 - Registering tool schemas with strict JSON schemas where possible
 - Running the tool-call loop
-- Enforcing max iterations, request timeout, and token budget
+- Enforcing max iterations, tool timeout, total request timeout, bounded user
+  input, bounded model output, and bounded tool output
+- Adding a cumulative token-budget policy as a production-hardening follow-up
 - Converting Spring API responses into model-readable tool outputs
 - Persisting traces for replay and debugging
-- Redacting sensitive tool outputs before storing or showing traces
+- Redacting sensitive tool outputs before model continuation, storage, or
+  trace display
 
 Key design choice:
 
@@ -310,7 +313,7 @@ Output:
 - Maximum log matches returned: 100
 - Fail closed when a guardrail cannot decide
 - Redact secrets, access tokens, emails, and obvious personal data before trace persistence
-- Retain local traces for a configurable period, defaulting to 7 days
+- Add configurable local trace retention, defaulting to 7 days, before production use
 
 ### SQL Controls
 
@@ -512,8 +515,8 @@ The project is successful when a reviewer can:
 
 ## 15. Source References
 
-- OpenAI Responses API: https://platform.openai.com/docs/api-reference/responses
-- OpenAI Function Calling Guide: https://platform.openai.com/docs/guides/function-calling
-- OpenAI Agents SDK Guide: https://platform.openai.com/docs/guides/agents
-- OpenAI Safety Best Practices: https://platform.openai.com/docs/guides/safety-best-practices
-- OpenAI Production Best Practices: https://platform.openai.com/docs/guides/production-best-practices
+- OpenAI Responses API: https://developers.openai.com/api/reference/resources/responses/methods/create
+- OpenAI Function Calling Guide: https://developers.openai.com/api/docs/guides/function-calling
+- OpenAI Agents SDK Guide: https://developers.openai.com/api/docs/guides/agents
+- OpenAI Safety Best Practices: https://developers.openai.com/api/docs/guides/safety-best-practices
+- OpenAI Production Best Practices: https://developers.openai.com/api/docs/guides/production-best-practices
