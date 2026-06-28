@@ -1,6 +1,9 @@
+import json
 from typing import Any, TextIO
 
 from app.redaction import redact
+
+MAX_VERBOSE_OUTPUT_CHARS = 2000
 
 
 def print_trace(
@@ -36,9 +39,15 @@ def print_trace(
             if isinstance(result, dict):
                 print(f"- {_tool_result_summary(result)}", file=stdout)
 
-    if dashboard_url and safe_trace.get("traceId"):
+    if dashboard_url and safe_trace.get("traceId") and safe_trace.get("persisted") is True:
         print("", file=stdout)
         print(f"Dashboard: {dashboard_url.rstrip('/')}/traces/{safe_trace['traceId']}", file=stdout)
+    elif dashboard_url and safe_trace.get("traceId"):
+        persistence_error = safe_trace.get("persistenceError")
+        if isinstance(persistence_error, dict):
+            code = persistence_error.get("code", "TRACE_NOT_PERSISTED")
+            print("", file=stdout)
+            print(f"Trace replay unavailable: {code}", file=stdout)
 
     if verbose:
         _print_verbose(safe_trace, stdout=stdout)
@@ -46,10 +55,14 @@ def print_trace(
 
 def print_error(payload: dict[str, Any], *, stderr: TextIO) -> None:
     safe_payload = _safe(payload)
-    code = safe_payload.get("code") or safe_payload.get("error", {}).get("code")
+    nested_error = safe_payload.get("error")
+    nested_error_dict = nested_error if isinstance(nested_error, dict) else {}
+    code = safe_payload.get("code") or nested_error_dict.get("code")
     if not isinstance(code, str):
         code = "AGENT_REQUEST_FAILED"
-    message = safe_payload.get("message") or safe_payload.get("error", {}).get("message")
+    message = safe_payload.get("message") or nested_error_dict.get("message")
+    if not isinstance(message, str) and isinstance(nested_error, str):
+        message = nested_error
     if not isinstance(message, str):
         message = "Agent request failed."
     message = _sanitize_error_message(message)
@@ -74,6 +87,17 @@ def _print_verbose(trace: dict[str, Any], *, stdout: TextIO) -> None:
                 )
     else:
         print("- none", file=stdout)
+
+    tool_results = trace.get("toolResults")
+    if isinstance(tool_results, list) and tool_results:
+        print("", file=stdout)
+        print("Tool results", file=stdout)
+        for index, result in enumerate(tool_results, start=1):
+            if isinstance(result, dict):
+                name = result.get("name", "unknown")
+                status = result.get("status", "unknown")
+                print(f"{index}. {name}: {status}", file=stdout)
+                print(_format_json(result.get("output", {})), file=stdout)
 
     guardrails = trace.get("guardrailRejections")
     if isinstance(guardrails, list) and guardrails:
@@ -116,6 +140,13 @@ def _tool_result_summary(result: dict[str, Any]) -> str:
 def _safe(value: Any) -> Any:
     safe_value, _ = redact(value)
     return safe_value
+
+
+def _format_json(value: Any) -> str:
+    rendered = json.dumps(value, ensure_ascii=True, indent=2, sort_keys=True)
+    if len(rendered) <= MAX_VERBOSE_OUTPUT_CHARS:
+        return rendered
+    return f"{rendered[:MAX_VERBOSE_OUTPUT_CHARS]}...\n[truncated]"
 
 
 def _sanitize_error_message(message: str) -> str:

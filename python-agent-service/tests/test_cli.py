@@ -67,6 +67,18 @@ def run_cli(*args: str) -> tuple[int, str, str]:
     return exit_code, stdout.getvalue(), stderr.getvalue()
 
 
+def run_cli_with_env(*args: str, env: dict[str, str]) -> tuple[int, str, str]:
+    stdout = StringIO()
+    stderr = StringIO()
+    exit_code = main(
+        list(args),
+        stdout=stdout,
+        stderr=stderr,
+        env=env,
+    )
+    return exit_code, stdout.getvalue(), stderr.getvalue()
+
+
 @respx.mock
 def test_ask_prints_final_answer_trace_id_and_compact_evidence() -> None:
     route = respx.post("http://agent.test/agent/run").mock(
@@ -88,6 +100,20 @@ def test_ask_prints_final_answer_trace_id_and_compact_evidence() -> None:
 @respx.mock
 def test_ask_verbose_prints_ordered_tool_calls_redactions_and_usage() -> None:
     payload = trace_payload(
+        toolResults=[
+            {
+                "callId": "call-logs",
+                "requestId": "req-logs",
+                "name": "search_error_logs",
+                "status": "success",
+                "output": {
+                    "matchCount": 3,
+                    "matches": [{"message": "Synthetic NullPointerException"}],
+                },
+                "errorCode": None,
+                "latencyMs": 12,
+            }
+        ],
         guardrailRejections=[
             {
                 "callId": "call-sql",
@@ -109,6 +135,8 @@ def test_ask_verbose_prints_ordered_tool_calls_redactions_and_usage() -> None:
     assert stderr == ""
     assert "Tool calls" in stdout
     assert "1. search_error_logs" in stdout
+    assert "Tool results" in stdout
+    assert "Synthetic NullPointerException" in stdout
     assert "Guardrail rejections" in stdout
     assert "SQL_WRITE_BLOCKED" in stdout
     assert "Redactions" in stdout
@@ -126,6 +154,30 @@ def test_ask_open_trace_prints_dashboard_url_without_browser_side_effect() -> No
 
     assert exit_code == 0
     assert "Dashboard: http://dashboard.test/traces/trace_cli_123" in stdout
+
+
+@respx.mock
+def test_ask_open_trace_does_not_print_dashboard_url_when_trace_was_not_persisted() -> None:
+    respx.post("http://agent.test/agent/run").mock(
+        return_value=Response(
+            504,
+            json=trace_payload(
+                status="failed",
+                persisted=False,
+                persistenceError={
+                    "code": "TRACE_PERSISTENCE_TIMEOUT",
+                    "message": "Trace persistence budget expired.",
+                },
+                error={"code": "REQUEST_TIMEOUT", "message": "Agent execution timed out."},
+            ),
+        )
+    )
+
+    exit_code, stdout, _ = run_cli("ask", "Investigate recent errors", "--open-trace")
+
+    assert exit_code == 1
+    assert "Dashboard:" not in stdout
+    assert "Trace replay unavailable: TRACE_PERSISTENCE_TIMEOUT" in stdout
 
 
 @respx.mock
@@ -184,6 +236,20 @@ def test_api_error_prints_structured_error_without_secret_leak() -> None:
 
 
 @respx.mock
+def test_api_error_with_string_error_shape_prints_safe_fallback() -> None:
+    respx.post("http://agent.test/agent/run").mock(
+        return_value=Response(502, json={"error": "upstream failed"})
+    )
+
+    exit_code, stdout, stderr = run_cli("ask", "Investigate")
+
+    assert exit_code == 1
+    assert stdout == ""
+    assert "AGENT_REQUEST_FAILED" in stderr
+    assert "upstream failed" in stderr
+
+
+@respx.mock
 def test_cli_output_redacts_sensitive_values_from_trace() -> None:
     respx.post("http://agent.test/agent/run").mock(
         return_value=Response(
@@ -228,3 +294,23 @@ def test_connection_error_prints_safe_message() -> None:
     assert stdout == ""
     assert "REQUEST_FAILED" in stderr
     assert "agent.test" not in stderr
+
+
+@respx.mock
+def test_invalid_timeout_env_falls_back_without_traceback() -> None:
+    respx.post("http://agent.test/agent/run").mock(
+        return_value=Response(200, json=trace_payload())
+    )
+
+    exit_code, stdout, stderr = run_cli_with_env(
+        "ask",
+        "Investigate",
+        env={
+            "STACKSLEUTH_AGENT_URL": "http://agent.test",
+            "STACKSLEUTH_AGENT_TIMEOUT_SECONDS": "not-a-number",
+        },
+    )
+
+    assert exit_code == 0
+    assert "Trace: trace_cli_123" in stdout
+    assert stderr == ""

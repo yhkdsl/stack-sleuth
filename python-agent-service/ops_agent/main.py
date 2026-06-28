@@ -51,8 +51,8 @@ def _build_parser(env: Mapping[str, str] | None = None) -> argparse.ArgumentPars
     parser.set_defaults(
         agent_url=resolved_env.get("STACKSLEUTH_AGENT_URL", DEFAULT_AGENT_URL),
         dashboard_url=resolved_env.get("STACKSLEUTH_DASHBOARD_URL", DEFAULT_DASHBOARD_URL),
-        timeout_seconds=float(
-            resolved_env.get("STACKSLEUTH_AGENT_TIMEOUT_SECONDS", DEFAULT_TIMEOUT_SECONDS)
+        timeout_seconds=_parse_timeout_seconds(
+            resolved_env.get("STACKSLEUTH_AGENT_TIMEOUT_SECONDS")
         ),
     )
     parser.add_argument("--agent-url", default=argparse.SUPPRESS)
@@ -118,3 +118,13 @@ def _handle_trace(
 
 def _looks_like_trace(payload: dict[str, object]) -> bool:
     return "traceId" in payload and "status" in payload
+
+
+def _parse_timeout_seconds(raw_value: str | None) -> float:
+    if raw_value is None:
+        return DEFAULT_TIMEOUT_SECONDS
+    try:
+        timeout_seconds = float(raw_value)
+    except ValueError:
+        return DEFAULT_TIMEOUT_SECONDS
+    return timeout_seconds if timeout_seconds > 0 else DEFAULT_TIMEOUT_SECONDS
