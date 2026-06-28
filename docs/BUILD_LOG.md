@@ -239,3 +239,39 @@ so clients do not offer broken replay links.
 **Documentation updated:** `python-agent-service/README.md`,
 `docs/TUTORIAL.md`, `docs/DEVELOPMENT_PLAN.md`, and
 `docs/articles/03-openai-function-calling-agent-loop.ko.md`.
+
+## 2026-06-27: Make the Terminal CLI a Thin Trace Client
+
+**Related work:** Issue #4
+
+**Problem:** The project pitch starts in the terminal, but a CLI that directly
+called Spring tools would duplicate the agent service boundary and risk
+turning the client into another executor.
+
+**Evidence:** Issue #4 requires `ops-agent ask`, verbose tool output, trace
+show, and trace replay. The architecture requires dashboards and clients to
+call FastAPI only, because FastAPI owns model orchestration and trace records.
+
+**Root cause:** A command-line tool can look like the natural place to put
+operations logic, but in this architecture it should be a developer experience
+surface over the agent API.
+
+**Decision:** Package `ops-agent` with the Python service as a thin sync HTTP
+client. `ask` calls only `POST /agent/run`; `trace show` and `trace replay`
+call only `GET /agent/traces/{traceId}`. The CLI prints the final answer first,
+then trace ID and compact evidence. Verbose mode expands tool calls, guardrail
+rejections, redactions, and token usage. Output receives a defensive redaction
+pass before it reaches the terminal.
+
+**Verification:** CLI tests cover happy path output, verbose output, guardrail
+rejection display, planned dashboard URL output, trace show, replay without an
+agent run, structured API errors, and connection failures.
+
+**Lesson for readers:** A good DX CLI should make the system easier to operate
+without becoming a second implementation of the system. The safest client is
+boring: call the public agent API, format the evidence, and preserve the
+security boundary.
+
+**Documentation updated:** `README.md`, `python-agent-service/README.md`,
+`docs/TUTORIAL.md`, `docs/BUILD_LOG.md`, and
+`docs/articles/03-openai-function-calling-agent-loop.ko.md`.
