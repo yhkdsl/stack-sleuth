@@ -58,8 +58,9 @@ Small maintenance fixes do not require a new article. They should update an exis
 | 01 | Spring Boot를 AI Agent의 안전한 Tool Server로 만들기 | Spring tool server | `docs/articles/01-safe-spring-tool-server.ko.md` |
 | 02 | LLM이 실행하는 SQL을 이중으로 보호하는 방법 | PostgreSQL demo and SQL guardrails | `docs/articles/02-defense-in-depth-sql-safety.ko.md` |
 | 03 | OpenAI Function Calling Agent Loop 구현하기 | Python agent service | `docs/articles/03-openai-function-calling-agent-loop.ko.md` |
-| 04 | Agent의 판단 과정을 React로 시각화하기 | Trace dashboard | `docs/articles/04-react-agent-trace-dashboard.ko.md` |
-| 05 | AI Agent의 timeout, 무한 반복, 개인정보 문제 검증하기 | Evals and failure-mode tests | `docs/articles/05-agent-failure-modes-and-evals.ko.md` |
+| 04 | AI Agent의 실행 과정을 터미널 CLI로 안전하게 보여주는 방법 | Terminal CLI and trace replay | `docs/articles/04-terminal-cli-agent-trace-replay.ko.md` |
+| 05 | Agent의 판단 과정을 React로 시각화하기 | Trace dashboard | `docs/articles/05-react-agent-trace-dashboard.ko.md` |
+| 06 | AI Agent의 timeout, 무한 반복, 개인정보 문제 검증하기 | Evals and failure-mode tests | `docs/articles/06-agent-failure-modes-and-evals.ko.md` |
 
 Each manuscript must contain:
 
@@ -115,4 +116,3 @@ Before publishing any tutorial or article:
 - Acronyms and agent-specific concepts are explained on first use.
 - The article includes at least one limitation or rejected alternative.
 - English summary accurately reflects the Korean article.
-
