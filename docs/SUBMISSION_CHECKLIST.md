@@ -89,8 +89,9 @@ Use this before linking the project in a resume, application, or recruiter messa
 - [ ] Article 01: safe Spring tool server is published or submission-ready.
 - [ ] Article 02: defense-in-depth SQL safety is published or submission-ready.
 - [ ] Article 03: OpenAI function-calling agent loop is published or submission-ready.
-- [ ] Article 04: React trace dashboard is published or submission-ready.
-- [ ] Article 05: failure modes and evals is published or submission-ready.
+- [ ] Article 04: terminal CLI trace replay is published or submission-ready.
+- [ ] Article 05: React trace dashboard is published or submission-ready.
+- [ ] Article 06: failure modes and evals is published or submission-ready.
 - [ ] Resume links directly to the strongest tutorial, architecture article, and demo.
 
 ## Application Positioning
