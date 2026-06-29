@@ -264,7 +264,7 @@ rejections, redactions, and token usage. Output receives a defensive redaction
 pass before it reaches the terminal.
 
 **Verification:** CLI tests cover happy path output, verbose output, guardrail
-rejection display, planned dashboard URL output, trace show, replay without an
+rejection display, dashboard URL output, trace show, replay without an
 agent run, structured API errors, and connection failures.
 
 **Lesson for readers:** A good DX CLI should make the system easier to operate
@@ -275,3 +275,38 @@ security boundary.
 **Documentation updated:** `README.md`, `python-agent-service/README.md`,
 `docs/TUTORIAL.md`, `docs/BUILD_LOG.md`, and
 `docs/articles/03-openai-function-calling-agent-loop.ko.md`.
+
+## 2026-06-29: Make the Frontend an Observability Surface, Not a Chatbot
+
+**Related work:** Issue #5
+
+**Problem:** The project needs a full-stack surface for portfolio review, but a
+generic chat UI would weaken the backend/agent story by hiding tool execution
+behind another message stream.
+
+**Evidence:** Issue #5 requires original request, final answer, ordered tool
+calls, guardrail rejections, redaction labels, cost/latency visibility, and
+credential-free replay. Those are observability requirements, not chat
+requirements.
+
+**Root cause:** Agent demos often optimize for the final answer. StackSleuth
+needs to prove that a reviewer can inspect how the answer was produced.
+
+**Decision:** Build `web-dashboard` as a Vite + React trace viewer with
+`/traces`, `/traces/{traceId}`, and `/replay`. Persisted trace pages call only
+FastAPI `GET /agent/traces/{traceId}`. Replay mode renders bundled sample trace
+data and does not call OpenAI, Spring, or FastAPI.
+
+**Verification:** Component tests cover replay without network, FastAPI-only
+trace loading, redaction labels, evidence rendering, missing-trace errors, and
+empty state. Playwright smoke verifies the sample replay final answer, ordered
+tool call, and guardrail panel. Desktop and mobile screenshots were reviewed
+for text overlap and trace readability.
+
+**Lesson for readers:** A frontend for an agent system should make the agent
+auditable. The safest dashboard is a reader of redacted traces, not another
+executor with access to internal tools.
+
+**Documentation updated:** `README.md`, `docs/TUTORIAL.md`,
+`docs/FRONTEND_DASHBOARD.md`, `web-dashboard/README.md`, and
+`docs/articles/05-react-agent-trace-dashboard.ko.md`.

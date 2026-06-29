@@ -65,7 +65,7 @@ def settings(tmp_path: Path) -> Settings:
         openai_api_key=None,
         agent_model="integration-model",
         trace_directory=tmp_path,
-        cors_origins=["http://localhost:3000"],
+        cors_origins=["http://localhost:5173"],
     )
 
 

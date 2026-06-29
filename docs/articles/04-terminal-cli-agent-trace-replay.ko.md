@@ -161,7 +161,7 @@ uv run ops-agent ask "Investigate errors from the last hour" --open-trace
 `persisted=true`일 때만 다음처럼 URL을 출력한다.
 
 ```text
-Dashboard: http://localhost:3000/traces/trace_cli_123
+Dashboard: http://localhost:5173/traces/trace_cli_123
 ```
 
 저장되지 않은 trace라면 링크 대신 이유를 보여준다.

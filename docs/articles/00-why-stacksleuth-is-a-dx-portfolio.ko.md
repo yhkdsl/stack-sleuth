@@ -63,7 +63,7 @@ StackSleuth는 문제를 다르게 잡았다.
 - Spring은 허용된 tool만 실행한다.
 - DB는 read-only 계정으로 한 번 더 제한한다.
 - trace는 redaction된 상태로 저장된다.
-- CLI는 현재 실행 과정을 terminal에서 보여주고, planned dashboard는 같은 trace를 더
+- CLI는 현재 실행 과정을 terminal에서 보여주고, dashboard는 같은 trace를 더
   시각적으로 검토하게 만드는 역할을 맡는다.
 
 이 구조는 backend 개발자가 잘하는 영역을 전면에 둔다. API boundary, data access,
@@ -80,7 +80,7 @@ StackSleuth의 구조는 기술을 많이 쓰기 위한 MSA가 아니다. 각 ru
 | Spring Boot | 내부 tool 실행, 인증, SQL 정책, DB 권한 | Java backend depth |
 | FastAPI | OpenAI Responses API loop, tool routing, trace persistence | agent orchestration |
 | CLI | 빠른 developer workflow, replay command, safe terminal output | developer ergonomics |
-| React dashboard | planned trace observability, replay visualization, human review | full-stack DX |
+| React dashboard | trace observability, replay visualization, human review | full-stack DX |
 | Docs/articles | tutorial, rationale, failure cases, public explanation | developer education |
 
 Spring에 OpenAI orchestration을 모두 넣을 수도 있었다. 하지만 frontier API와
@@ -98,7 +98,7 @@ StackSleuth는 "모델이 똑똑하다"보다 "시스템이 모델을 어떻게 
 - **SQL boundary:** parser가 SELECT만 허용하고, PostgreSQL reader role이 실제 권한을 제한한다.
 - **Loop boundary:** max iteration, request timeout, tool timeout, output token limit을 둔다.
 - **Trace boundary:** replay는 재실행이 아니라 redacted persisted trace 조회다.
-- **Output boundary:** CLI는 Spring internal endpoint를 직접 호출하지 않고, planned dashboard도 같은 원칙을 따른다.
+- **Output boundary:** CLI는 Spring internal endpoint를 직접 호출하지 않고, dashboard도 같은 원칙을 따른다.
 - **Content boundary:** 구현된 것은 Draft, 아직 구현 전인 것은 Planned로 표시한다.
 
 이 경계를 문서와 테스트에 남긴 이유는 면접관이나 오픈소스 독자가 저장소를 봤을 때

@@ -81,7 +81,7 @@ uv run ops-agent trace replay <trace_id>
 Environment variables:
 
 - `STACKSLEUTH_AGENT_URL`, default `http://localhost:8000`
-- `STACKSLEUTH_DASHBOARD_URL`, default `http://localhost:3000`
+- `STACKSLEUTH_DASHBOARD_URL`, default `http://localhost:5173`
 - `STACKSLEUTH_AGENT_TIMEOUT_SECONDS`, default `10`
 
 `ask` calls only `POST /agent/run`. `trace show` and `trace replay` call only

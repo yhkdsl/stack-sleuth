@@ -44,7 +44,7 @@ Final answer
 DB 확인 결과 users.profile_img 값이 null입니다.
 권장 조치: ProfileService에서 null fallback 처리를 추가하고 기존 null 데이터를 정리하세요.
 
-Dashboard: http://localhost:3000/traces/trace_...
+Dashboard: http://localhost:5173/traces/trace_...
 ```
 
 Expected tool path:
@@ -90,16 +90,17 @@ Dashboard shots to capture:
 
 ## Demo 3: Replay Without API Key
 
-Command or UI action:
-
-```bash
-ops-agent trace replay examples/traces/null-profile-image.json
-```
-
-or open:
+UI action:
 
 ```text
-http://localhost:3000/replay
+http://localhost:5173/replay
+```
+
+For CLI replay of a persisted run, use the trace ID returned by the agent
+service:
+
+```bash
+ops-agent trace replay trace_...
 ```
 
 Expected behavior:
@@ -140,4 +141,3 @@ The demo is strong when a reviewer can answer:
 - Was destructive SQL blocked?
 - Can I inspect the trace without trusting the final answer blindly?
 - Can I run or replay this locally?
-
