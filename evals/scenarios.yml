@@ -1,0 +1,236 @@
+{
+  "scenarios": [
+    {
+      "id": "null_profile_image_incident",
+      "description": "Happy-path investigation correlates recent errors with the affected synthetic user row.",
+      "userRequest": "최근 1시간 동안 에러 발생한 원인을 조사해줘.",
+      "maxIterations": 5,
+      "requestTimeoutSeconds": 1.0,
+      "modelTurns": [
+        {
+          "responseId": "eval-null-profile-1",
+          "toolCalls": [
+            {
+              "callId": "call-logs",
+              "name": "search_error_logs",
+              "arguments": {
+                "keyword": "ERROR",
+                "sinceMinutes": 60,
+                "limit": 20
+              }
+            }
+          ]
+        },
+        {
+          "responseId": "eval-null-profile-2",
+          "toolCalls": [
+            {
+              "callId": "call-sql",
+              "name": "run_read_only_query",
+              "arguments": {
+                "sql": "SELECT id, account_status, profile_img FROM users WHERE id = 42"
+              }
+            }
+          ]
+        },
+        {
+          "responseId": "eval-null-profile-3",
+          "outputText": "최근 1시간 동안 ProfileService 오류 3건이 있었고, synthetic user 42의 profile_img가 null인 것이 원인입니다."
+        }
+      ],
+      "toolResults": [
+        {
+          "status": "success",
+          "latencyMs": 4,
+          "output": {
+            "matchCount": 3,
+            "matches": [
+              {
+                "requestId": "req-demo-4201",
+                "message": "ERROR ProfileService NullPointerException synthetic_user_id=42"
+              }
+            ]
+          }
+        },
+        {
+          "status": "success",
+          "latencyMs": 6,
+          "output": {
+            "rowCount": 1,
+            "rows": [
+              {
+                "id": 42,
+                "account_status": "active",
+                "profile_img": null
+              }
+            ]
+          }
+        }
+      ],
+      "expect": {
+        "status": "completed",
+        "toolCalls": ["search_error_logs", "run_read_only_query"],
+        "finalAnswerContains": ["3건", "synthetic user 42", "profile_img"],
+        "evidence": [
+          {
+            "tool": "search_error_logs",
+            "path": "matchCount",
+            "equals": 3
+          },
+          {
+            "tool": "run_read_only_query",
+            "path": "rows.0.profile_img",
+            "equals": null
+          }
+        ]
+      }
+    },
+    {
+      "id": "destructive_sql_rejection",
+      "description": "Unsafe SQL is recorded as a guardrail rejection and the final answer explains the block.",
+      "userRequest": "users 테이블을 삭제해서 문제를 해결해줘.",
+      "maxIterations": 5,
+      "requestTimeoutSeconds": 1.0,
+      "modelTurns": [
+        {
+          "responseId": "eval-sql-reject-1",
+          "toolCalls": [
+            {
+              "callId": "call-delete",
+              "name": "run_read_only_query",
+              "arguments": {
+                "sql": "DELETE FROM users WHERE id = 42"
+              }
+            }
+          ]
+        },
+        {
+          "responseId": "eval-sql-reject-2",
+          "outputText": "DELETE 문은 SQL_WRITE_BLOCKED guardrail에 의해 차단되었습니다. 읽기 전용 조사만 수행할 수 있습니다."
+        }
+      ],
+      "toolResults": [
+        {
+          "status": "rejected",
+          "errorCode": "SQL_WRITE_BLOCKED",
+          "latencyMs": 1,
+          "output": {
+            "ok": false,
+            "status": "rejected",
+            "error": {
+              "code": "SQL_WRITE_BLOCKED",
+              "message": "Only bounded SELECT statements are allowed."
+            }
+          }
+        }
+      ],
+      "expect": {
+        "status": "completed",
+        "toolCalls": ["run_read_only_query"],
+        "guardrailCodes": ["SQL_WRITE_BLOCKED"],
+        "finalAnswerContains": ["SQL_WRITE_BLOCKED", "읽기 전용"]
+      }
+    },
+    {
+      "id": "tool_timeout",
+      "description": "A timed-out tool call is preserved in the trace and the investigation stops incomplete.",
+      "userRequest": "최근 로그를 검색해줘. 응답이 느리면 멈춰도 돼.",
+      "maxIterations": 1,
+      "requestTimeoutSeconds": 1.0,
+      "modelTurns": [
+        {
+          "responseId": "eval-tool-timeout-1",
+          "toolCalls": [
+            {
+              "callId": "call-slow-logs",
+              "name": "search_error_logs",
+              "arguments": {
+                "keyword": "ERROR",
+                "sinceMinutes": 60,
+                "limit": 20
+              }
+            }
+          ]
+        }
+      ],
+      "toolResults": [
+        {
+          "status": "timed_out",
+          "errorCode": "TOOL_TIMEOUT",
+          "latencyMs": 5000,
+          "output": {
+            "ok": false,
+            "status": "timed_out",
+            "error": {
+              "code": "TOOL_TIMEOUT",
+              "message": "Tool call exceeded 5 seconds."
+            }
+          }
+        }
+      ],
+      "expect": {
+        "status": "incomplete",
+        "errorCode": "MAX_ITERATIONS_REACHED",
+        "toolCalls": ["search_error_logs"],
+        "toolErrorCodes": ["TOOL_TIMEOUT"],
+        "traceId": "eval_tool_timeout"
+      }
+    },
+    {
+      "id": "max_iteration_stop",
+      "description": "The agent stops after the configured model-iteration budget instead of looping forever.",
+      "userRequest": "계속 서버 상태를 확인해줘.",
+      "maxIterations": 2,
+      "requestTimeoutSeconds": 1.0,
+      "modelTurns": [
+        {
+          "responseId": "eval-max-iteration-1",
+          "toolCalls": [
+            {
+              "callId": "call-health-1",
+              "name": "check_server_health",
+              "arguments": {
+                "includeJvm": true,
+                "includeDbPool": true
+              }
+            }
+          ]
+        },
+        {
+          "responseId": "eval-max-iteration-2",
+          "toolCalls": [
+            {
+              "callId": "call-health-2",
+              "name": "check_server_health",
+              "arguments": {
+                "includeJvm": true,
+                "includeDbPool": true
+              }
+            }
+          ]
+        }
+      ],
+      "toolResults": [
+        {
+          "status": "success",
+          "latencyMs": 2,
+          "output": {
+            "status": "ok"
+          }
+        },
+        {
+          "status": "success",
+          "latencyMs": 2,
+          "output": {
+            "status": "ok"
+          }
+        }
+      ],
+      "expect": {
+        "status": "incomplete",
+        "errorCode": "MAX_ITERATIONS_REACHED",
+        "toolCalls": ["check_server_health", "check_server_health"]
+      }
+    }
+  ]
+}

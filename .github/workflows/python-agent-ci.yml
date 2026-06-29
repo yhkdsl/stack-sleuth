@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - "python-agent-service/**"
+      - "evals/**"
       - "examples/python-agent/**"
       - "docs/**"
       - "README.md"
@@ -14,6 +15,7 @@ on:
       - main
     paths:
       - "python-agent-service/**"
+      - "evals/**"
       - "examples/python-agent/**"
       - "docs/**"
       - "README.md"
@@ -47,13 +49,19 @@ jobs:
         run: uv sync --locked --all-groups
 
       - name: Lint
-        run: uv run ruff check . ../examples/python-agent/mock_investigation.py
+        run: uv run ruff check . ../examples/python-agent/mock_investigation.py ../evals/run_evals.py
 
       - name: Test
         run: uv run pytest -q --cov=app --cov-report=term-missing --cov-fail-under=90
 
       - name: Run credential-free example
         run: uv run python ../examples/python-agent/mock_investigation.py
+
+      - name: Run deterministic eval scenarios
+        run: uv run python ../evals/run_evals.py
+
+      - name: Validate deterministic fixtures
+        run: bash ../infra/scripts/verify-fixtures.sh
 
       - name: Validate documentation and examples
         run: node ../infra/scripts/verify-documentation.mjs

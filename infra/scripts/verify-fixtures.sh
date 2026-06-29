@@ -5,6 +5,8 @@ set -euo pipefail
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 log_file="${repo_root}/infra/sample-logs/app.log"
 seed_file="${repo_root}/infra/postgres/init/002-seed.sql"
+eval_file="${repo_root}/evals/scenarios.yml"
+trace_file="${repo_root}/examples/traces/null-profile-image.json"
 
 for request_id in req-demo-4201 req-demo-4202 req-demo-4203; do
   if [[ "$(grep --fixed-strings --count "${request_id}" "${seed_file}")" != "1" ]]; then
@@ -20,7 +22,11 @@ done
 
 sensitive_pattern='([[:alnum:]._%+-]+@[[:alnum:].-]+\.[[:alpha:]]{2,})|(bearer[[:space:]]+[[:alnum:]_.-]+)|(sk-[[:alnum:]_-]{16,})|(\+82[- ]?1[016789][- ]?[0-9]{3,4}[- ]?[0-9]{4})|(01[016789][- ][0-9]{3,4}[- ][0-9]{4})|(\+1[- ]?[2-9][0-9]{2}[- ][0-9]{3}[- ][0-9]{4})|(BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY)'
 
-if grep --extended-regexp --line-number --ignore-case "${sensitive_pattern}" "${log_file}" "${seed_file}"; then
+if grep --extended-regexp --line-number --ignore-case "${sensitive_pattern}" \
+  "${log_file}" \
+  "${seed_file}" \
+  "${eval_file}" \
+  "${trace_file}"; then
   printf 'FAIL: sample fixtures contain an email, token, phone number, or private key pattern\n' >&2
   exit 1
 fi

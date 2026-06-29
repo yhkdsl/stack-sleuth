@@ -21,6 +21,8 @@ examples/
     rejected-sql.sh
   python-agent/
     mock_investigation.py
+  traces/
+    null-profile-image.json
 ```
 
 Run the Spring tool server, then execute an example:
@@ -44,13 +46,23 @@ uv run python ../examples/python-agent/mock_investigation.py
 The example uses the production loop and trace store with scripted adapters.
 It prints a completed, redacted trace and writes only to a temporary directory.
 
-## Planned Trace Fixtures
+Run deterministic eval scenarios without OpenAI, Spring, or PostgreSQL:
+
+```bash
+uv run python ../evals/run_evals.py
+```
+
+The eval runner uses `evals/scenarios.yml` and writes local traces under
+`var/eval-traces` by default.
+
+## Trace Fixtures
 
 ```text
 examples/
   traces/
     null-profile-image.json
-    rejected-destructive-sql.json
 ```
 
-Trace fixtures will be added with the agent service and replay dashboard. The canonical beginner sequence remains in `docs/TUTORIAL.md`.
+`null-profile-image.json` is the canonical dashboard replay fixture. Additional
+guardrail trace fixtures can be added as demo assets. The canonical beginner
+sequence remains in `docs/TUTORIAL.md`.
