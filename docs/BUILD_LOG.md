@@ -310,3 +310,37 @@ executor with access to internal tools.
 **Documentation updated:** `README.md`, `docs/TUTORIAL.md`,
 `docs/FRONTEND_DASHBOARD.md`, `web-dashboard/README.md`, and
 `docs/articles/05-react-agent-trace-dashboard.ko.md`.
+
+## 2026-06-29: Turn Failure Modes into Deterministic Evals
+
+**Related work:** Issue #6
+
+**Problem:** The project already had unit tests for individual failure modes,
+but reviewers still needed one copyable command that proved the MVP handles
+happy-path investigation, SQL rejection, tool timeout, and max-iteration stop.
+
+**Evidence:** Issue #6 requires `evals/scenarios.yml`, an eval runner, expected
+tool calls, guardrail events, final-answer evidence, and fixture safety.
+
+**Root cause:** Unit tests are good engineering evidence, but they are not
+always legible as a product-level safety story. A Developer Experience sample
+needs a higher-level scenario runner that maps directly to the README claim.
+
+**Decision:** Add deterministic eval scenarios that run the production
+`AgentLoop` with scripted model turns and scripted Spring tool results. The
+runner avoids OpenAI, Spring, PostgreSQL, and external YAML dependencies, then
+asserts trace status, tool order, guardrail codes, timeout codes, error codes,
+and required evidence.
+
+**Verification:** Runner tests cover scenario coverage, happy-path tool order,
+failure contracts, and `main()` success. The local runner prints four `PASS`
+lines for null-profile investigation, destructive SQL rejection, tool timeout,
+and max-iteration stop.
+
+**Lesson for readers:** Evals do not have to start as a full model-quality
+benchmark. For an agent MVP, the first useful eval is often a deterministic
+contract suite that proves the system fails safely and preserves evidence.
+
+**Documentation updated:** `README.md`, `docs/TUTORIAL.md`,
+`docs/DEVELOPMENT_PLAN.md`, and
+`docs/articles/06-agent-failure-modes-and-evals.ko.md`.

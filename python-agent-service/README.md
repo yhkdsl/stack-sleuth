@@ -18,6 +18,7 @@ cd python-agent-service
 uv sync --locked --all-groups
 uv run ruff check .
 uv run pytest -q --cov=app --cov-report=term-missing
+uv run python ../evals/run_evals.py
 ```
 
 Run the deterministic example without an API key or Spring server:
@@ -29,6 +30,17 @@ uv run python ../examples/python-agent/mock_investigation.py
 The example uses the real agent loop and trace store with scripted model and
 tool adapters. It prints a completed trace and writes the temporary trace
 outside the repository.
+
+Run the deterministic eval suite:
+
+```bash
+uv run python ../evals/run_evals.py
+```
+
+The eval runner uses the production `AgentLoop` with scripted model turns and
+tool results. It verifies happy-path tool order, destructive SQL rejection,
+tool timeout recording, and max-iteration stopping without OpenAI, Spring, or
+PostgreSQL.
 
 ## Run the Service
 
@@ -86,9 +98,8 @@ Environment variables:
 
 `ask` calls only `POST /agent/run`. `trace show` and `trace replay` call only
 `GET /agent/traces/{traceId}`. The CLI never calls Spring internal endpoints.
-`--open-trace` prints the dashboard trace URL; the dashboard implementation is
-still planned. Terminal output applies a defensive redaction pass before
-printing trace data or structured errors.
+`--open-trace` prints the dashboard trace URL. Terminal output applies a
+defensive redaction pass before printing trace data or structured errors.
 
 ## Trace Persistence Contract
 

@@ -45,6 +45,7 @@ cd python-agent-service
 uv sync --locked --all-groups
 uv run pytest -q
 uv run python ../examples/python-agent/mock_investigation.py
+uv run python ../evals/run_evals.py
 ```
 
 Expected result:
@@ -53,6 +54,8 @@ Expected result:
 - Python tests exercise mocked OpenAI and Spring calls, timeout boundaries,
   trace redaction, and HTTP replay.
 - The mock example prints a completed investigation trace without credentials.
+- Deterministic eval scenarios verify the happy path, SQL guardrail rejection,
+  tool timeout handling, and max-iteration stopping without OpenAI or Spring.
 
 The terminal entry point is implemented:
 
@@ -90,6 +93,7 @@ mode renders checked-in trace data and does not call OpenAI, Spring, or FastAPI.
 | Python FastAPI agent service | Initial implementation complete: Responses API loop, strict tools, bounded execution, structured Spring errors, redacted local traces, API endpoints, and tests |
 | CLI | Initial implementation complete: `ask`, `--verbose`, `--open-trace`, `trace show`, `trace replay`, structured API errors, and tests |
 | React trace dashboard | Initial implementation complete: `/traces`, `/traces/{traceId}`, `/replay`, component tests, Playwright replay smoke test, and sample trace |
+| Evals and guardrail scenarios | Initial implementation complete: deterministic `evals/scenarios.yml`, runner, CI hook, and tests for happy path, SQL rejection, tool timeout, and max-iteration stop |
 | Demo recording and trace-replay assets | Sample trace implemented; recording/GIF still planned |
 | Beginner tutorial and DX content program | Structure and initial manuscripts documented; publication evidence is still in progress |
 
@@ -153,6 +157,7 @@ uv sync --locked --all-groups
 uv run ruff check .
 uv run pytest -q --cov=app --cov-report=term-missing
 uv run python ../examples/python-agent/mock_investigation.py
+uv run python ../evals/run_evals.py
 ```
 
 For a live investigation, start the Spring server, set `OPENAI_API_KEY`,

@@ -97,6 +97,7 @@ uv sync --locked --all-groups
 uv run ruff check .
 uv run pytest -q --cov=app --cov-report=term-missing
 uv run python ../examples/python-agent/mock_investigation.py
+uv run python ../evals/run_evals.py
 ```
 
 The example uses the production `AgentLoop` and `FileTraceStore` with scripted
@@ -130,7 +131,45 @@ The expected scenario can select this tool path:
 The exact calls remain a model decision, so automated tests use scripted model
 responses instead of asserting nondeterministic live behavior.
 
-## 6. Use the Terminal CLI
+## 6. Run Failure-Mode Evals
+
+The eval runner proves the MVP behavior with deterministic scenarios. It does
+not call OpenAI, Spring, or PostgreSQL. Instead, it runs the production
+`AgentLoop` with scripted model turns and tool results.
+
+From `python-agent-service`:
+
+```bash
+uv run python ../evals/run_evals.py
+```
+
+Expected output:
+
+```text
+PASS null_profile_image_incident trace=eval_null_profile_image_incident
+PASS destructive_sql_rejection trace=eval_destructive_sql_rejection
+PASS tool_timeout trace=eval_tool_timeout
+PASS max_iteration_stop trace=eval_max_iteration_stop
+```
+
+The scenarios live in `evals/scenarios.yml` and verify:
+
+- happy-path `search_error_logs` then `run_read_only_query`
+- destructive SQL rejection with `SQL_WRITE_BLOCKED`
+- tool timeout recorded as `TOOL_TIMEOUT` on the trace
+- max-iteration stopping with `MAX_ITERATIONS_REACHED`
+
+On systems where `python` is available and the agent virtual environment has
+already been created, the root-level command also works:
+
+```bash
+python evals/run_evals.py
+```
+
+If macOS reports an Xcode license problem for `python3`, use the `uv run`
+command above from `python-agent-service`.
+
+## 7. Use the Terminal CLI
 
 The CLI is implemented in `python-agent-service` and talks only to FastAPI.
 Keep the FastAPI service running, then run:
@@ -174,7 +213,7 @@ export STACKSLEUTH_AGENT_URL=http://localhost:8000
 export STACKSLEUTH_DASHBOARD_URL=http://localhost:5173
 ```
 
-## 7. Inspect and Replay the Trace in the Dashboard
+## 8. Inspect and Replay the Trace in the Dashboard
 
 The trace API is implemented. Replay a trace returned by `POST /agent/run` only
 when its `persisted` field is `true`:
