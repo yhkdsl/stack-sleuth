@@ -23,6 +23,7 @@ examples/
     mock_investigation.py
   traces/
     null-profile-image.json
+    guardrail-rejection-redacted.json
 ```
 
 Run the Spring tool server, then execute an example:
@@ -61,8 +62,10 @@ The eval runner uses `evals/scenarios.yml` and writes local traces under
 examples/
   traces/
     null-profile-image.json
+    guardrail-rejection-redacted.json
 ```
 
-`null-profile-image.json` is the canonical dashboard replay fixture. Additional
-guardrail trace fixtures can be added as demo assets. The canonical beginner
+`null-profile-image.json` is the canonical dashboard replay fixture.
+`guardrail-rejection-redacted.json` is a focused safe trace for explaining
+`SQL_WRITE_BLOCKED` without showing private data. The canonical beginner
 sequence remains in `docs/TUTORIAL.md`.

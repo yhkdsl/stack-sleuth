@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720" role="img" aria-labelledby="title desc">
+  <title id="title">StackSleuth trace dashboard replay</title>
+  <desc id="desc">A safe synthetic dashboard screenshot showing trace replay, ordered tool calls, final answer, metrics, and guardrail review.</desc>
+  <rect width="1200" height="720" fill="#f8fafc"/>
+  <text x="58" y="62" font-family="Inter, Arial, sans-serif" font-size="32" font-weight="700" fill="#0f172a">Trace replay: trace_sample_null_profile</text>
+  <text x="58" y="94" font-family="Inter, Arial, sans-serif" font-size="16" fill="#64748b">Sample replay · completed · 2 iterations · 3020 ms · no OpenAI/Spring calls</text>
+
+  <rect x="58" y="126" width="1084" height="96" rx="14" fill="#ffffff" stroke="#cbd5e1"/>
+  <text x="88" y="164" font-family="Inter, Arial, sans-serif" font-size="15" font-weight="700" fill="#334155">Original request</text>
+  <text x="88" y="194" font-family="Inter, Arial, sans-serif" font-size="18" fill="#0f172a">Investigate errors from the last hour and summarize the cause.</text>
+
+  <rect x="58" y="250" width="654" height="270" rx="14" fill="#ffffff" stroke="#cbd5e1"/>
+  <text x="88" y="288" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="700" fill="#0f172a">Ordered tool calls</text>
+  <line x1="114" y1="330" x2="114" y2="461" stroke="#cbd5e1" stroke-width="3"/>
+  <circle cx="114" cy="340" r="12" fill="#2563eb"/>
+  <text x="146" y="347" font-family="Inter, Arial, sans-serif" font-size="17" font-weight="700" fill="#0f172a">search_error_logs</text>
+  <text x="146" y="377" font-family="Inter, Arial, sans-serif" font-size="14" fill="#475569">keyword=ERROR · sinceMinutes=60 · result=3 matches · 43 ms</text>
+  <circle cx="114" cy="445" r="12" fill="#16a34a"/>
+  <text x="146" y="452" font-family="Inter, Arial, sans-serif" font-size="17" font-weight="700" fill="#0f172a">run_read_only_query</text>
+  <text x="146" y="482" font-family="Inter, Arial, sans-serif" font-size="14" fill="#475569">SELECT id, account_status, profile_img FROM users WHERE id = 42 · 31 ms</text>
+
+  <rect x="744" y="250" width="398" height="132" rx="14" fill="#ffffff" stroke="#cbd5e1"/>
+  <text x="774" y="288" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="700" fill="#0f172a">Final answer</text>
+  <text x="774" y="322" font-family="Inter, Arial, sans-serif" font-size="14" fill="#475569">Three recent errors point to a NullPointerException in ProfileService.</text>
+  <text x="774" y="348" font-family="Inter, Arial, sans-serif" font-size="14" fill="#475569">user 42 has a null profile_img value.</text>
+
+  <rect x="744" y="404" width="398" height="116" rx="14" fill="#ffffff" stroke="#cbd5e1"/>
+  <text x="774" y="442" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="700" fill="#0f172a">Runtime</text>
+  <text x="774" y="476" font-family="Inter, Arial, sans-serif" font-size="14" fill="#475569">Tokens: 2252 total · Cost: not configured</text>
+  <text x="774" y="500" font-family="Inter, Arial, sans-serif" font-size="14" fill="#475569">Redactions: policy checked · Persisted: true</text>
+
+  <rect x="58" y="548" width="1084" height="112" rx="14" fill="#fff7ed" stroke="#fdba74"/>
+  <text x="88" y="588" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="700" fill="#9a3412">Guardrail review</text>
+  <text x="88" y="620" font-family="Inter, Arial, sans-serif" font-size="15" fill="#9a3412">SQL_WRITE_BLOCKED: Write statements are blocked by the read-only SQL policy.</text>
+  <text x="88" y="646" font-family="Inter, Arial, sans-serif" font-size="14" fill="#9a3412">This is a policy rejection, not an infrastructure failure.</text>
+</svg>

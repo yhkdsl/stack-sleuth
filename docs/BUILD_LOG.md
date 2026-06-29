@@ -344,3 +344,46 @@ contract suite that proves the system fails safely and preserves evidence.
 **Documentation updated:** `README.md`, `docs/TUTORIAL.md`,
 `docs/DEVELOPMENT_PLAN.md`, and
 `docs/articles/06-agent-failure-modes-and-evals.ko.md`.
+
+## 2026-06-29: Make Portfolio Evidence Safe and Explicit
+
+**Related work:** Issue #7
+
+**Problem:** The repository had the MVP implementation, but the README still
+made readers scroll before seeing the strongest evidence. Demo recording was
+also described as planned without a safe checked-in visual alternative.
+
+**Evidence:** Issue #7 requires demo assets, architecture diagram, guardrail
+rejection material, README final pass, beginner-path verification, and accurate
+content status. Raw terminal or desktop recordings can accidentally expose
+`.env`, local account names, terminal history, browser profiles, or unrelated
+applications.
+
+**Root cause:** Implementation evidence and publication evidence are related
+but not identical. A working dashboard is not automatically a safe portfolio
+asset, and a planned GIF should not be described as completed until it exists.
+
+**Decision:** Add sanitized static demo frames under `docs/assets/` for the
+terminal flow, dashboard replay, guardrail rejection, and architecture diagram.
+Keep the README honest: the local MVP is implemented, live OpenAI runs require
+user credentials, live model quality is not CI evidence, and a polished GIF or
+video remains a manual publication task. Add a focused redacted guardrail trace
+fixture for `SQL_WRITE_BLOCKED`.
+
+**Verification:** Documentation validation passed across 22 Markdown files.
+Fixture sensitive-data scan passed. Shell examples passed syntax checks.
+Python ruff passed, Python tests passed with 55 tests and 97% coverage,
+deterministic evals printed four `PASS` results, frontend lint/test/build
+passed, Playwright replay smoke passed, and the Spring test suite built
+successfully.
+
+**Lesson for readers:** A portfolio demo should be safe by default. Synthetic
+or replay-based assets are less flashy than raw recordings, but they give
+reviewers immediate evidence without leaking local state or overstating what
+has been externally published.
+
+**Documentation updated:** `README.md`, `docs/DEMO_SCRIPT.md`,
+`docs/CONTENT_STRATEGY.md`, `docs/SUBMISSION_CHECKLIST.md`,
+`docs/SKILLS_AND_DOCS.md`, `docs/assets/`, `examples/README.md`,
+`examples/traces/guardrail-rejection-redacted.json`, and
+`docs/articles/`.

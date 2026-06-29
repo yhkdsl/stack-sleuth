@@ -53,15 +53,25 @@ Small maintenance fixes do not require a new article. They should update an exis
 
 ## Article Series
 
-| No. | Working title | Implementation dependency | Repository manuscript |
-| --- | --- | --- | --- |
-| 00 | OpenAI Developer Experience Engineer 지원을 위해 StackSleuth를 어떻게 설계했는가 | Whole portfolio narrative | `docs/articles/00-why-stacksleuth-is-a-dx-portfolio.ko.md` |
-| 01 | Spring Boot를 AI Agent의 안전한 Tool Server로 만들기 | Spring tool server | `docs/articles/01-safe-spring-tool-server.ko.md` |
-| 02 | LLM이 실행하는 SQL을 이중으로 보호하는 방법 | PostgreSQL demo and SQL guardrails | `docs/articles/02-defense-in-depth-sql-safety.ko.md` |
-| 03 | OpenAI Function Calling Agent Loop 구현하기 | Python agent service | `docs/articles/03-openai-function-calling-agent-loop.ko.md` |
-| 04 | AI Agent의 실행 과정을 터미널 CLI로 안전하게 보여주는 방법 | Terminal CLI and trace replay | `docs/articles/04-terminal-cli-agent-trace-replay.ko.md` |
-| 05 | Agent의 판단 과정을 React로 시각화하기 | Trace dashboard | `docs/articles/05-react-agent-trace-dashboard.ko.md` |
-| 06 | AI Agent의 timeout, 무한 반복, 개인정보 문제 검증하기 | Evals and failure-mode tests | `docs/articles/06-agent-failure-modes-and-evals.ko.md` |
+| No. | Working title | Implementation dependency | Repository manuscript | Current status |
+| --- | --- | --- | --- | --- |
+| 00 | OpenAI Developer Experience Engineer 지원을 위해 StackSleuth를 어떻게 설계했는가 | Whole portfolio narrative | `docs/articles/00-why-stacksleuth-is-a-dx-portfolio.ko.md` | Draft, not externally published |
+| 01 | Spring Boot를 AI Agent의 안전한 Tool Server로 만들기 | Spring tool server | `docs/articles/01-safe-spring-tool-server.ko.md` | Draft, not externally published |
+| 02 | LLM이 실행하는 SQL을 이중으로 보호하는 방법 | PostgreSQL demo and SQL guardrails | `docs/articles/02-defense-in-depth-sql-safety.ko.md` | Draft, not externally published |
+| 03 | OpenAI Function Calling Agent Loop 구현하기 | Python agent service | `docs/articles/03-openai-function-calling-agent-loop.ko.md` | Draft, not externally published |
+| 04 | AI Agent의 실행 과정을 터미널 CLI로 안전하게 보여주는 방법 | Terminal CLI and trace replay | `docs/articles/04-terminal-cli-agent-trace-replay.ko.md` | Draft, not externally published |
+| 05 | Agent의 판단 과정을 React로 시각화하기 | Trace dashboard | `docs/articles/05-react-agent-trace-dashboard.ko.md` | Draft, not externally published |
+| 06 | AI Agent의 timeout, 무한 반복, 개인정보 문제 검증하기 | Evals and failure-mode tests | `docs/articles/06-agent-failure-modes-and-evals.ko.md` | Draft, not externally published |
+
+## Demo Asset Status
+
+| Asset | Location | Status |
+| --- | --- | --- |
+| Terminal demo frame | `docs/assets/terminal-demo.svg` | Sanitized static frame checked in |
+| Trace dashboard screenshot | `docs/assets/dashboard-replay.svg` | Sanitized static frame checked in |
+| Guardrail rejection screenshot | `docs/assets/guardrail-rejection.svg` | Sanitized static frame checked in |
+| Architecture diagram | `docs/assets/architecture.svg` | Checked in |
+| Raw terminal GIF or video | External publication asset | Planned manual recording after checklist review |
 
 Each manuscript must contain:
 
