@@ -37,7 +37,7 @@ Python FastAPI Agent Service
   |
   | persisted redacted trace
   v
-React/Next.js Trace Dashboard
+Vite + React Trace Dashboard
 ```
 
 ## Service Responsibilities
@@ -70,7 +70,7 @@ React/Next.js Trace Dashboard
 - Audits tool execution with `traceId`, `requestId`, tool name, status, latency, and rejection reason.
 - Does not own model traces or final agent answers.
 
-### React/Next.js Trace Dashboard
+### Vite + React Trace Dashboard
 
 - Reads trace data from the FastAPI agent service.
 - Visualizes model steps, tool calls, guardrails, evidence, latency, token usage, and final answer.

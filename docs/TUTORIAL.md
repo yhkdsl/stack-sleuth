@@ -21,10 +21,10 @@ The project is not a generic chatbot. The model receives bounded tools, while ap
 - Docker Desktop or another Docker-compatible runtime
 - Python 3.12
 - [uv](https://docs.astral.sh/uv/)
-- Node.js, once the dashboard is implemented
+- Node.js 22
 - An OpenAI API key, only for live agent runs
 
-Replay mode will be designed to work without an OpenAI API key.
+Replay mode works without an OpenAI API key.
 
 ## 1. Clone and Inspect the Repository
 
@@ -160,21 +160,21 @@ uv run ops-agent ask "Investigate errors from the last hour" --verbose
 ```
 
 `--verbose` prints ordered tool calls, guardrail rejections, redactions, and
-token usage. To print the planned dashboard URL:
+token usage. To print the dashboard URL:
 
 ```bash
 uv run ops-agent ask "Investigate errors from the last hour" --open-trace
 ```
 
-The dashboard is still planned, so `--open-trace` prints a URL instead of
-assuming that a browser target exists. Configure local endpoints when needed:
+`--open-trace` prints a URL instead of opening a browser automatically. Configure
+local endpoints when needed:
 
 ```bash
 export STACKSLEUTH_AGENT_URL=http://localhost:8000
-export STACKSLEUTH_DASHBOARD_URL=http://localhost:3000
+export STACKSLEUTH_DASHBOARD_URL=http://localhost:5173
 ```
 
-## 7. Inspect and Replay the Trace
+## 7. Inspect and Replay the Trace in the Dashboard
 
 The trace API is implemented. Replay a trace returned by `POST /agent/run` only
 when its `persisted` field is `true`:
@@ -185,7 +185,7 @@ curl http://localhost:8000/agent/traces/<trace_id>
 
 Replay reads the redacted local JSON trace and does not call OpenAI or Spring.
 When `persisted` is `false`, inspect `persistenceError` instead of presenting a
-replay link. The React dashboard is still planned.
+replay link.
 
 The CLI wraps the same API:
 
@@ -197,7 +197,27 @@ uv run ops-agent trace replay <trace_id>
 Both commands call only `GET /agent/traces/{traceId}`. They do not call OpenAI
 or Spring.
 
-The dashboard will eventually show:
+Run the dashboard:
+
+```bash
+cd ../web-dashboard
+npm ci
+npm run dev
+```
+
+Open the credential-free replay page:
+
+```text
+http://localhost:5173/replay
+```
+
+Open a persisted trace returned by the agent service:
+
+```text
+http://localhost:5173/traces/<trace_id>
+```
+
+The dashboard shows:
 
 - original request and final answer
 - ordered tool calls and results
@@ -205,6 +225,15 @@ The dashboard will eventually show:
 - redacted fields
 - latency and token usage
 - replay mode backed by checked-in sample trace JSON
+
+Verify the dashboard:
+
+```bash
+npm run lint
+npm test
+npm run build
+npm run test:e2e
+```
 
 ## Troubleshooting
 

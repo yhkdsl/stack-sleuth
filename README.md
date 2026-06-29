@@ -8,14 +8,14 @@ The project concept is simple: a developer types an operations question in a ter
 
 **One-line pitch:** An agentic ops copilot for backend tool calling.
 
-**Current status:** MVP implementation in progress. The Spring Boot tool server, deterministic PostgreSQL demo data, bounded Python agent service, and terminal CLI are implemented. The dashboard is still planned, and a live OpenAI run is not part of the checked-in automated verification.
+**Current status:** MVP implementation in progress. The Spring Boot tool server, deterministic PostgreSQL demo data, bounded Python agent service, terminal CLI, and React trace dashboard are implemented. A live OpenAI run is not part of the checked-in automated verification.
 
 **What this demonstrates:**
 
 - OpenAI Responses API tool calling and agent loop design
 - Spring Boot as a secure backend tool server
 - Python FastAPI as a lightweight OpenAI orchestration service
-- React/Next.js as an agent observability and replay dashboard
+- Vite + React as an agent observability and replay dashboard
 - SQL safety controls, max-iteration limits, timeout handling, and audit logs
 - AI-assisted frontend development with human-reviewed DX, state handling, and trace readability
 - Developer experience artifacts: quickstart, diagrams, demo scenarios, failure cases, trace dashboard, and design rationale
@@ -61,9 +61,23 @@ uv run ops-agent ask "최근 1시간 에러 분석해줘" --open-trace
 ```
 
 The command calls the FastAPI agent service, prints the final answer first,
-shows compact evidence and the trace ID, and prints the planned dashboard trace
-URL when `--open-trace` is set. The trace dashboard behind that URL is still
-planned.
+shows compact evidence and the trace ID, and prints the dashboard trace URL
+when `--open-trace` is set.
+
+The trace dashboard can be verified without an OpenAI API key:
+
+```bash
+cd web-dashboard
+npm ci
+npm run lint
+npm test
+npm run build
+npm run test:e2e
+npm run dev
+```
+
+Open `http://localhost:5173/replay` to inspect the bundled sample trace. Replay
+mode renders checked-in trace data and does not call OpenAI, Spring, or FastAPI.
 
 ## Implementation Status
 
@@ -75,8 +89,8 @@ planned.
 | PostgreSQL demo data | Implemented: Docker Compose, deterministic fixtures, correlated sample logs, and database-enforced read-only role |
 | Python FastAPI agent service | Initial implementation complete: Responses API loop, strict tools, bounded execution, structured Spring errors, redacted local traces, API endpoints, and tests |
 | CLI | Initial implementation complete: `ask`, `--verbose`, `--open-trace`, `trace show`, `trace replay`, structured API errors, and tests |
-| React/Next.js trace dashboard | Not started |
-| Demo recording and trace-replay assets | Not started |
+| React trace dashboard | Initial implementation complete: `/traces`, `/traces/{traceId}`, `/replay`, component tests, Playwright replay smoke test, and sample trace |
+| Demo recording and trace-replay assets | Sample trace implemented; recording/GIF still planned |
 | Beginner tutorial and DX content program | Structure and initial manuscripts documented; publication evidence is still in progress |
 
 ## Spring Tool Server
@@ -185,11 +199,38 @@ Configure alternate local endpoints with:
 
 ```bash
 export STACKSLEUTH_AGENT_URL=http://localhost:8000
-export STACKSLEUTH_DASHBOARD_URL=http://localhost:3000
+export STACKSLEUTH_DASHBOARD_URL=http://localhost:5173
 ```
 
 The CLI does not call Spring internal tool endpoints. Replay loads a persisted
 trace through `GET /agent/traces/{traceId}` and does not call OpenAI or Spring.
+
+## React Trace Dashboard
+
+The dashboard lives in `web-dashboard` and is an observability surface, not a
+chat interface:
+
+```bash
+cd web-dashboard
+npm ci
+npm run dev
+```
+
+Open:
+
+```text
+http://localhost:5173/replay
+```
+
+For persisted traces, start the FastAPI service and open:
+
+```text
+http://localhost:5173/traces/<trace_id>
+```
+
+The dashboard calls only `GET /agent/traces/{traceId}`. `/replay` uses bundled
+sample trace data from the web app, with the canonical JSON fixture stored at
+`examples/traces/null-profile-image.json`.
 
 ## Intended Audience
 

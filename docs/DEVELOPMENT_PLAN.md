@@ -1,6 +1,6 @@
 # StackSleuth Development Plan
 
-> **Goal:** Build a portfolio-grade, open-source-ready AI backend operations copilot that demonstrates safe OpenAI tool calling with Java Spring Boot, Python FastAPI, PostgreSQL, a terminal CLI, and a React/Next.js trace dashboard.
+> **Goal:** Build a portfolio-grade, open-source-ready AI backend operations copilot that demonstrates safe OpenAI tool calling with Java Spring Boot, Python FastAPI, PostgreSQL, a terminal CLI, and a Vite + React trace dashboard.
 
 ## Global Constraints
 
@@ -411,13 +411,13 @@ Validation:
 - `--verbose` prints tool call sequence.
 - `--open-trace` opens or prints a dashboard URL for the returned trace ID.
 
-## Phase 5: React/Next.js Trace Dashboard
+## Phase 5: Vite + React Trace Dashboard
 
 **Target outcome:** The project satisfies full-stack expectations while strengthening the AI/backend story. The frontend shows how the agent behaved rather than replacing the CLI with a chat UI.
 
 Recommended stack:
 
-- Next.js or Vite + React
+- Vite + React
 - TypeScript
 - Tailwind CSS or a restrained component system
 - TanStack Query or simple fetch hooks

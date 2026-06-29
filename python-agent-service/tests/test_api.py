@@ -53,7 +53,7 @@ def settings(tmp_path: Path) -> Settings:
         openai_api_key=None,
         agent_model="test-model",
         trace_directory=tmp_path,
-        cors_origins=["http://localhost:3000"],
+        cors_origins=["http://localhost:5173"],
     )
 
 
@@ -136,7 +136,7 @@ async def test_run_rejects_request_larger_than_configured_limit(
         openai_api_key=None,
         agent_model="test-model",
         trace_directory=tmp_path,
-        cors_origins=["http://localhost:3000"],
+        cors_origins=["http://localhost:5173"],
         max_user_request_chars=10,
     )
     loop = FakeLoop(trace())
@@ -184,10 +184,10 @@ async def test_cors_allows_only_configured_dashboard_origin(tmp_path: Path) -> N
         "OPTIONS",
         "/agent/run",
         headers={
-            "Origin": "http://localhost:3000",
+            "Origin": "http://localhost:5173",
             "Access-Control-Request-Method": "POST",
         },
     )
 
     assert response.status_code == 200
-    assert response.headers["access-control-allow-origin"] == "http://localhost:3000"
+    assert response.headers["access-control-allow-origin"] == "http://localhost:5173"

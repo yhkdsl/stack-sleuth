@@ -9,7 +9,7 @@ from ops_agent.client import AgentApiClient
 from ops_agent.formatting import print_error, print_request_failure, print_trace
 
 DEFAULT_AGENT_URL = "http://localhost:8000"
-DEFAULT_DASHBOARD_URL = "http://localhost:3000"
+DEFAULT_DASHBOARD_URL = "http://localhost:5173"
 DEFAULT_TIMEOUT_SECONDS = 10.0
 
 

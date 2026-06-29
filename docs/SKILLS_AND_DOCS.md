@@ -39,7 +39,7 @@ This file lists the skills, concepts, and reference documents needed to build St
 
 - React
 - TypeScript
-- Next.js or Vite
+- Vite
 - Component-driven UI design
 - API data fetching
 - Loading, empty, and error states
@@ -61,7 +61,7 @@ This file lists the skills, concepts, and reference documents needed to build St
 ### Docs
 
 - React: https://react.dev/
-- Next.js: https://nextjs.org/docs
+- Vite: https://vite.dev/
 - TypeScript: https://www.typescriptlang.org/docs/
 - Playwright: https://playwright.dev/
 - Vitest: https://vitest.dev/

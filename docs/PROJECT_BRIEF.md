@@ -79,7 +79,7 @@ Spring Boot Tool Server
     v
 PostgreSQL + sample app logs + Micrometer metrics
 
-React/Next.js Trace Dashboard
+Vite + React Trace Dashboard
     ^
     |
     +--- reads trace data from Python FastAPI Agent Service
@@ -111,7 +111,7 @@ ops-agent ask "최근 1시간 에러 분석해줘" --open-trace
 ops-agent trace replay trace_2026_06_23_001
 ```
 
-### React/Next.js Trace Dashboard
+### Vite + React Trace Dashboard
 
 Responsible for:
 

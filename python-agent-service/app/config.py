@@ -63,6 +63,6 @@ class Settings(BaseSettings):
         alias="TRACE_DIRECTORY",
     )
     cors_origins: list[str] = Field(
-        default_factory=lambda: ["http://localhost:3000"],
+        default_factory=lambda: ["http://localhost:5173"],
         alias="CORS_ORIGINS",
     )

@@ -1,4 +1,4 @@
-# Frontend Dashboard Plan
+# Frontend Dashboard
 
 ## 1. Positioning
 
@@ -93,7 +93,7 @@ Raw Trace
   - collapsible JSON
 ```
 
-## 5. Component Plan
+## 5. Component Implementation
 
 ```text
 components/TraceHeader.tsx
@@ -204,13 +204,13 @@ The dashboard should feel like a trace viewer, not a landing page.
 
 Use AI to accelerate frontend implementation, then document the review process.
 
-Suggested workflow:
+Implemented workflow:
 
 1. Provide this document and sample trace JSON to an AI coding agent.
-2. Ask it to generate the first Next.js dashboard implementation.
-3. Manually review component boundaries, accessibility, loading states, error states, and responsive behavior.
-4. Add tests for the trace page.
-5. Add a README note explaining what AI generated and what was manually refined.
+2. Generate a Vite + React trace dashboard implementation.
+3. Manually review component boundaries, accessibility, loading states, error states, responsive behavior, and color balance.
+4. Add tests for the trace page and replay page.
+5. Add a README note explaining the API boundary and verification commands.
 
 Do not claim the frontend is valuable because "AI made it." The stronger claim is that AI was part of the development workflow, while the product judgment remained human.
 
@@ -235,7 +235,7 @@ Playwright smoke test:
 
 ## 10. MVP Scope
 
-Build:
+Implemented:
 
 - Trace list
 - Trace detail

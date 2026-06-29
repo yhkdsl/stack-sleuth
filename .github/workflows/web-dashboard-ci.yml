@@ -1,0 +1,62 @@
+name: Web Dashboard CI
+
+on:
+  pull_request:
+    paths:
+      - "web-dashboard/**"
+      - "examples/traces/**"
+      - "docs/**"
+      - "README.md"
+      - ".github/workflows/web-dashboard-ci.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "web-dashboard/**"
+      - "examples/traces/**"
+      - "docs/**"
+      - "README.md"
+      - ".github/workflows/web-dashboard-ci.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: web-dashboard
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: web-dashboard/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Unit tests
+        run: npm test
+
+      - name: Build
+        run: npm run build
+
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Smoke test replay dashboard
+        run: npm run test:e2e
+
+      - name: Validate documentation and examples
+        run: node ../infra/scripts/verify-documentation.mjs
