@@ -34,7 +34,7 @@ Developer question
   -> Spring Boot Tool Server
   -> PostgreSQL and logs
   -> Redacted trace
-  -> CLI answer and dashboard replay
+  -> CLI answer today, dashboard replay in the planned frontend
 ```
 
 핵심은 "AI가 DB를 조회한다"가 아니다. 핵심은 애플리케이션이 어디까지 AI에게
@@ -63,7 +63,8 @@ StackSleuth는 문제를 다르게 잡았다.
 - Spring은 허용된 tool만 실행한다.
 - DB는 read-only 계정으로 한 번 더 제한한다.
 - trace는 redaction된 상태로 저장된다.
-- CLI와 dashboard는 실행 과정을 사람이 검토할 수 있게 보여준다.
+- CLI는 현재 실행 과정을 terminal에서 보여주고, planned dashboard는 같은 trace를 더
+  시각적으로 검토하게 만드는 역할을 맡는다.
 
 이 구조는 backend 개발자가 잘하는 영역을 전면에 둔다. API boundary, data access,
 transaction policy, audit log, test fixture, operational failure handling이 모두
@@ -79,7 +80,7 @@ StackSleuth의 구조는 기술을 많이 쓰기 위한 MSA가 아니다. 각 ru
 | Spring Boot | 내부 tool 실행, 인증, SQL 정책, DB 권한 | Java backend depth |
 | FastAPI | OpenAI Responses API loop, tool routing, trace persistence | agent orchestration |
 | CLI | 빠른 developer workflow, replay command, safe terminal output | developer ergonomics |
-| React dashboard | trace observability, replay visualization, human review | full-stack DX |
+| React dashboard | planned trace observability, replay visualization, human review | full-stack DX |
 | Docs/articles | tutorial, rationale, failure cases, public explanation | developer education |
 
 Spring에 OpenAI orchestration을 모두 넣을 수도 있었다. 하지만 frontier API와
@@ -97,7 +98,7 @@ StackSleuth는 "모델이 똑똑하다"보다 "시스템이 모델을 어떻게 
 - **SQL boundary:** parser가 SELECT만 허용하고, PostgreSQL reader role이 실제 권한을 제한한다.
 - **Loop boundary:** max iteration, request timeout, tool timeout, output token limit을 둔다.
 - **Trace boundary:** replay는 재실행이 아니라 redacted persisted trace 조회다.
-- **Output boundary:** CLI와 dashboard는 Spring internal endpoint를 직접 호출하지 않는다.
+- **Output boundary:** CLI는 Spring internal endpoint를 직접 호출하지 않고, planned dashboard도 같은 원칙을 따른다.
 - **Content boundary:** 구현된 것은 Draft, 아직 구현 전인 것은 Planned로 표시한다.
 
 이 경계를 문서와 테스트에 남긴 이유는 면접관이나 오픈소스 독자가 저장소를 봤을 때
@@ -186,7 +187,7 @@ AI에게 backend 작업을 어디까지 위임할 수 있는지 보여주는 ref
 1. Java/Spring backend 경험을 살리기 위해 내부 tool server를 Spring에 뒀다.
 2. OpenAI orchestration은 FastAPI에서 명시적인 Responses API loop로 구현했다.
 3. 모델이 선택해도 실행 권한은 Spring과 DB policy가 제한한다.
-4. CLI와 dashboard는 실행 결과뿐 아니라 판단 과정을 검토하게 만든다.
+4. CLI는 현재 실행 결과와 판단 과정을 terminal에서 보여주고, dashboard는 같은 목적의 planned frontend다.
 5. 각 단계마다 article, tutorial, build log를 남겨 DX 역량을 증명했다.
 
 ## 앞으로 보강할 증거
