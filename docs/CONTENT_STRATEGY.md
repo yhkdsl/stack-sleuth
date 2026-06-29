@@ -55,6 +55,7 @@ Small maintenance fixes do not require a new article. They should update an exis
 
 | No. | Working title | Implementation dependency | Repository manuscript |
 | --- | --- | --- | --- |
+| 00 | OpenAI Developer Experience Engineer 지원을 위해 StackSleuth를 어떻게 설계했는가 | Whole portfolio narrative | `docs/articles/00-why-stacksleuth-is-a-dx-portfolio.ko.md` |
 | 01 | Spring Boot를 AI Agent의 안전한 Tool Server로 만들기 | Spring tool server | `docs/articles/01-safe-spring-tool-server.ko.md` |
 | 02 | LLM이 실행하는 SQL을 이중으로 보호하는 방법 | PostgreSQL demo and SQL guardrails | `docs/articles/02-defense-in-depth-sql-safety.ko.md` |
 | 03 | OpenAI Function Calling Agent Loop 구현하기 | Python agent service | `docs/articles/03-openai-function-calling-agent-loop.ko.md` |

@@ -86,6 +86,7 @@ Use this before linking the project in a resume, application, or recruiter messa
 
 ## Public Writing Evidence
 
+- [ ] Article 00: DX portfolio narrative is published or submission-ready.
 - [ ] Article 01: safe Spring tool server is published or submission-ready.
 - [ ] Article 02: defense-in-depth SQL safety is published or submission-ready.
 - [ ] Article 03: OpenAI function-calling agent loop is published or submission-ready.
