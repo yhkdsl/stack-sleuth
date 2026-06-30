@@ -171,19 +171,21 @@ This file lists the skills, concepts, and reference documents needed to build St
 - Docker Compose
 - `.env.example` hygiene
 - GitHub Actions CI
-- Makefile or task runner
+- Optional Makefile or task runner after the explicit commands stabilize
 - Local quickstart documentation
 - Local-only internal service defaults
 
-### Useful Commands to Provide
+### Current Useful Commands
 
 ```bash
-make up
-make test
-make eval
-make dashboard
-make demo
-make down
+./gradlew :spring-tool-server:test
+docker compose --env-file .env -f infra/docker-compose.yml up -d --wait
+infra/scripts/verify-postgres.sh
+cd python-agent-service && uv run pytest -q
+cd python-agent-service && uv run python ../evals/run_evals.py
+cd web-dashboard && npm test
+cd web-dashboard && npm run test:e2e
+docker compose --env-file .env -f infra/docker-compose.yml down
 ```
 
 ### Docs

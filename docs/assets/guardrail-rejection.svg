@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="460" viewBox="0 0 1200 460" role="img" aria-labelledby="title desc">
+  <title id="title">StackSleuth SQL guardrail rejection demo</title>
+  <desc id="desc">A safe synthetic guardrail screenshot showing a destructive SQL request blocked by SQL_WRITE_BLOCKED.</desc>
+  <rect width="1200" height="460" fill="#fff7ed"/>
+  <rect x="72" y="64" width="1056" height="332" rx="18" fill="#ffffff" stroke="#fdba74" stroke-width="2"/>
+  <text x="112" y="122" font-family="Inter, Arial, sans-serif" font-size="30" font-weight="700" fill="#9a3412">Guardrail rejection</text>
+  <text x="112" y="162" font-family="Inter, Arial, sans-serif" font-size="17" fill="#7c2d12">The model may ask for a destructive query, but the Spring tool server and database policy keep the investigation read-only.</text>
+
+  <rect x="112" y="200" width="448" height="118" rx="12" fill="#111827"/>
+  <text x="140" y="238" font-family="SFMono-Regular, Menlo, Consolas, monospace" font-size="17" fill="#93c5fd">run_read_only_query</text>
+  <text x="140" y="274" font-family="SFMono-Regular, Menlo, Consolas, monospace" font-size="15" fill="#fecaca">DELETE FROM users WHERE id = 42</text>
+  <text x="140" y="302" font-family="SFMono-Regular, Menlo, Consolas, monospace" font-size="15" fill="#d1d5db">status: rejected</text>
+
+  <rect x="620" y="200" width="448" height="118" rx="12" fill="#fffbeb" stroke="#f59e0b"/>
+  <text x="650" y="238" font-family="Inter, Arial, sans-serif" font-size="20" font-weight="700" fill="#92400e">SQL_WRITE_BLOCKED</text>
+  <text x="650" y="274" font-family="Inter, Arial, sans-serif" font-size="15" fill="#92400e">Write statements are blocked by the read-only SQL policy.</text>
+  <text x="650" y="302" font-family="Inter, Arial, sans-serif" font-size="15" fill="#92400e">No write is executed; the trace records the rejection.</text>
+
+  <text x="112" y="360" font-family="Inter, Arial, sans-serif" font-size="14" fill="#7c2d12">Synthetic demo asset. It contains no production logs, credentials, API keys, emails, or personal data.</text>
+</svg>

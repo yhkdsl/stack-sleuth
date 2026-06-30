@@ -1,0 +1,71 @@
+{
+  "traceId": "trace_sample_guardrail_rejection",
+  "status": "completed",
+  "startedAt": "2026-06-29T00:00:00Z",
+  "completedAt": "2026-06-29T00:00:01Z",
+  "userRequest": "Show whether destructive SQL is blocked by the local read-only policy.",
+  "model": "sample-replay",
+  "iterations": 2,
+  "toolCalls": [
+    {
+      "callId": "call-delete",
+      "requestId": "req-delete",
+      "name": "run_read_only_query",
+      "arguments": {
+        "sql": "DELETE FROM users WHERE id = 42"
+      },
+      "iteration": 1
+    }
+  ],
+  "toolResults": [
+    {
+      "callId": "call-delete",
+      "requestId": "req-delete",
+      "name": "run_read_only_query",
+      "status": "rejected",
+      "output": {
+        "error": {
+          "code": "SQL_WRITE_BLOCKED",
+          "message": "Write statements are blocked by the read-only SQL policy."
+        }
+      },
+      "errorCode": "SQL_WRITE_BLOCKED",
+      "latencyMs": 5
+    }
+  ],
+  "guardrailRejections": [
+    {
+      "callId": "call-delete",
+      "requestId": "req-delete",
+      "name": "run_read_only_query",
+      "status": "rejected",
+      "output": {
+        "error": {
+          "code": "SQL_WRITE_BLOCKED",
+          "message": "Write statements are blocked by the read-only SQL policy."
+        }
+      },
+      "errorCode": "SQL_WRITE_BLOCKED",
+      "latencyMs": 5
+    }
+  ],
+  "redactions": [
+    {
+      "path": "$.toolResults[*].output",
+      "reason": "credential_and_personal_data_scan_completed"
+    }
+  ],
+  "usage": {
+    "inputTokens": 1024,
+    "outputTokens": 180,
+    "totalTokens": 1204
+  },
+  "estimatedCost": null,
+  "pricingMetadata": null,
+  "totalDurationMs": 960,
+  "persisted": true,
+  "persistenceError": null,
+  "confidence": 0.9,
+  "finalAnswer": "The destructive SQL request was rejected. StackSleuth only allows read-only investigation tools, and the Spring SQL guardrail returned SQL_WRITE_BLOCKED before any write was executed.",
+  "error": null
+}

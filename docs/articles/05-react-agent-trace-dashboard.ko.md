@@ -5,6 +5,7 @@
 - **External URL:** Not published
 
 **Tracking issue:** [Issue #5](https://github.com/yhkdsl/stack-sleuth/issues/5)
+**Implementation PR:** [PR #14](https://github.com/yhkdsl/stack-sleuth/pull/14)
 
 ## English Summary
 
@@ -111,4 +112,5 @@ AI-assisted frontend development를 단순한 코드 생성으로 설명하지 �
 
 발행 전 남은 작업:
 
-- sanitized screenshot 또는 GIF를 README와 외부 블로그 글에 포함
+- README와 외부 블로그 글에 `docs/assets/dashboard-replay.svg` 또는 별도 녹화 GIF 포함
+- 외부 블로그 발행 후 URL을 이 문서와 `docs/CONTENT_STRATEGY.md`에 반영

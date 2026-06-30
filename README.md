@@ -1,14 +1,16 @@
 # StackSleuth
 
-StackSleuth is a portfolio-grade reference implementation in progress for Java/Spring backend developers who want to demonstrate production-minded OpenAI tool calling.
+StackSleuth is a portfolio-grade reference implementation for Java/Spring backend developers who want to demonstrate production-minded OpenAI tool calling.
 
 The project concept is simple: a developer types an operations question in a terminal, and an AI agent investigates the backend by safely calling approved Spring Boot tools such as server health checks, error-log search, and read-only SQL inspection. A web dashboard then visualizes the agent trace so engineers can inspect tool calls, guardrail decisions, latency, token usage, and final evidence. The goal is not to build another chatbot. The goal is to show how to delegate bounded backend investigation work to an AI agent with guardrails, auditability, and developer-friendly documentation.
+
+![StackSleuth terminal demo frame](docs/assets/terminal-demo.svg)
 
 ## Positioning
 
 **One-line pitch:** An agentic ops copilot for backend tool calling.
 
-**Current status:** MVP implementation in progress. The Spring Boot tool server, deterministic PostgreSQL demo data, bounded Python agent service, terminal CLI, and React trace dashboard are implemented. A live OpenAI run is not part of the checked-in automated verification.
+**Current status:** MVP implementation is code-complete for the local portfolio demo. The Spring Boot tool server, deterministic PostgreSQL demo data, bounded Python agent service, terminal CLI, React trace dashboard, and deterministic eval scenarios are implemented. A live OpenAI run is supported when credentials are configured, but live model quality is not claimed as checked-in automated evidence.
 
 **What this demonstrates:**
 
@@ -19,6 +21,34 @@ The project concept is simple: a developer types an operations question in a ter
 - SQL safety controls, max-iteration limits, timeout handling, and audit logs
 - AI-assisted frontend development with human-reviewed DX, state handling, and trace readability
 - Developer experience artifacts: quickstart, diagrams, demo scenarios, failure cases, trace dashboard, and design rationale
+
+## Demo Evidence
+
+The checked-in demo assets are sanitized synthetic frames derived from the sample trace and documented CLI output. They are intentionally not raw terminal or desktop recordings, so they do not expose `.env`, local account names, terminal history, API keys, database passwords, or private logs.
+
+| Asset | Purpose |
+| --- | --- |
+| [Terminal demo frame](docs/assets/terminal-demo.svg) | Shows the `ops-agent ask` happy path output shape |
+| [Trace dashboard screenshot](docs/assets/dashboard-replay.svg) | Shows replay, tool timeline, evidence, metrics, and guardrail review |
+| [Guardrail rejection screenshot](docs/assets/guardrail-rejection.svg) | Shows `SQL_WRITE_BLOCKED` as a policy rejection |
+| [Architecture diagram](docs/assets/architecture.svg) | Shows CLI, FastAPI, OpenAI, Spring, data sources, trace store, and dashboard boundaries |
+
+![StackSleuth trace dashboard replay](docs/assets/dashboard-replay.svg)
+
+## Architecture
+
+![StackSleuth architecture diagram](docs/assets/architecture.svg)
+
+The CLI and dashboard never call Spring internal tool endpoints. FastAPI owns model orchestration, tool routing, redaction, and trace persistence. Spring owns narrow backend tool execution, authentication, SQL policy, and database access.
+
+## Guardrail Example
+
+![StackSleuth guardrail rejection example](docs/assets/guardrail-rejection.svg)
+
+The SQL tool accepts only bounded read-only investigation queries. Destructive
+statements are rejected as `SQL_WRITE_BLOCKED`, recorded separately from
+infrastructure failures, and shown in the CLI/dashboard trace instead of being
+executed.
 
 ## Documents
 
@@ -94,8 +124,15 @@ mode renders checked-in trace data and does not call OpenAI, Spring, or FastAPI.
 | CLI | Initial implementation complete: `ask`, `--verbose`, `--open-trace`, `trace show`, `trace replay`, structured API errors, and tests |
 | React trace dashboard | Initial implementation complete: `/traces`, `/traces/{traceId}`, `/replay`, component tests, Playwright replay smoke test, and sample trace |
 | Evals and guardrail scenarios | Initial implementation complete: deterministic `evals/scenarios.yml`, runner, CI hook, and tests for happy path, SQL rejection, tool timeout, and max-iteration stop |
-| Demo recording and trace-replay assets | Sample trace implemented; recording/GIF still planned |
-| Beginner tutorial and DX content program | Structure and initial manuscripts documented; publication evidence is still in progress |
+| Demo and trace-replay assets | Sanitized static demo frames, architecture diagram, sample trace, and guardrail screenshot implemented; externally recorded GIF/video still planned |
+| Beginner tutorial and DX content program | Tutorial, build log, content strategy, and Korean article drafts implemented; external publication evidence is still planned |
+
+## Planned but Not Claimed
+
+- External blog publication URLs are not added until the posts are actually published.
+- A polished terminal GIF or video recording is still a publication task; checked-in visual assets are sanitized static frames.
+- Live OpenAI model quality is not part of CI because model choice and credentials are user-specific.
+- Production deployment, multi-tenant auth, retention policy, and external trace storage are outside the MVP scope.
 
 ## Spring Tool Server
 

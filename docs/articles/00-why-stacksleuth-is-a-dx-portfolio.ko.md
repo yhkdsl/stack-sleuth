@@ -10,8 +10,8 @@ StackSleuth is designed as a Developer Experience portfolio project, not only
 as a backend demo. It shows how a Java/Spring backend engineer can build and
 explain a bounded AI agent system: Spring owns safe internal tools, FastAPI owns
 OpenAI orchestration and trace persistence, the terminal CLI exposes a focused
-developer workflow, and the planned React dashboard will turn agent traces into
-inspectable evidence. The repository intentionally pairs implementation with
+developer workflow, and the React dashboard turns agent traces into
+inspectable evidence through replay. The repository intentionally pairs implementation with
 tutorials, build logs, failure cases, and Korean blog manuscripts with English
 summaries so reviewers can evaluate both engineering judgment and the ability
 to teach other developers.
@@ -192,15 +192,16 @@ AI에게 backend 작업을 어디까지 위임할 수 있는지 보여주는 ref
 
 ## 앞으로 보강할 증거
 
-현재 남은 가장 큰 포트폴리오 보강점은 demo asset과 외부 발행 evidence다.
+현재 남은 가장 큰 포트폴리오 보강점은 외부 발행 evidence와 실제 녹화 asset이다.
 
-- sample trace replay GIF
-- guardrail rejection GIF
+- externally published article URLs
+- polished terminal GIF or short video recorded after the safety checklist
 - external blog publication URL
-- README 상단의 strongest evidence 링크 정리
+- live OpenAI model quality evaluation, if the project later adds a fixed dataset and judge
 
-이 작업들이 추가되면 StackSleuth는 backend agent architecture뿐 아니라 full-stack
-DX artifact로 더 설득력 있게 보일 것이다.
+README 상단에는 이미 sanitized terminal frame, dashboard frame, guardrail frame,
+architecture diagram이 들어간다. 이 static frame은 안전한 제출용 기본 자산이고,
+실제 GIF나 영상은 공개 발행 전에 따로 녹화하는 것이 맞다.
 
 ## 결론
 

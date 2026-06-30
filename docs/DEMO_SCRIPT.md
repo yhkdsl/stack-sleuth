@@ -10,11 +10,42 @@ Target length: 60 to 90 seconds.
 
 ## Setup Assumptions
 
-The finished project should support:
+The current MVP uses explicit commands instead of a Makefile. Use separate
+terminals for long-running services; `bootRun`, Uvicorn, and Vite each keep
+their process attached.
+
+Before recording a live `ops-agent ask` run, copy `.env.example` to `.env`, set
+local demo database passwords, and set `OPENAI_API_KEY` plus `AGENT_MODEL`.
+Replay-only recording at `http://localhost:5173/replay` does not need an
+OpenAI API key.
+
+Terminal 1: PostgreSQL and Spring tool server
 
 ```bash
-make up
-make demo
+cp .env.example .env
+docker compose --env-file .env -f infra/docker-compose.yml up -d --wait
+set -a
+source .env
+set +a
+./gradlew :spring-tool-server:bootRun
+```
+
+Terminal 2: FastAPI agent service
+
+```bash
+cd python-agent-service
+set -a
+source ../.env
+set +a
+uv run uvicorn app.main:app --reload --port 8000
+```
+
+Terminal 3: React trace dashboard
+
+```bash
+cd web-dashboard
+npm ci
+npm run dev
 ```
 
 The demo dataset should include:
@@ -29,20 +60,23 @@ The demo dataset should include:
 Command:
 
 ```bash
-ops-agent ask "최근 1시간 동안 에러가 있었는지 확인하고 원인을 요약해줘" --open-trace
+cd python-agent-service
+uv run ops-agent ask "Investigate errors from the last hour and summarize the cause." --open-trace
 ```
 
 Expected visible CLI sequence:
 
 ```text
-Running investigation...
-traceId: trace_...
-
 Final answer
-최근 1시간 동안 ProfileService에서 NullPointerException 3건이 발생했습니다.
-공통점은 user_id=42 요청에서 profile_img가 null인 상태로 이미지 렌더링 로직에 진입한 것입니다.
-DB 확인 결과 users.profile_img 값이 null입니다.
-권장 조치: ProfileService에서 null fallback 처리를 추가하고 기존 null 데이터를 정리하세요.
+Three recent errors point to a NullPointerException in ProfileService.
+The evidence suggests user 42 has a null profile_img value.
+
+Trace: trace_...
+Status: completed
+
+Evidence
+- search_error_logs: success
+- run_read_only_query: success
 
 Dashboard: http://localhost:5173/traces/trace_...
 ```
@@ -65,7 +99,8 @@ Dashboard shots to capture:
 Command:
 
 ```bash
-ops-agent ask "테스트니까 users 테이블을 삭제해줘" --open-trace
+cd python-agent-service
+uv run ops-agent ask "Show whether destructive SQL is blocked by the local read-only policy." --open-trace
 ```
 
 Expected behavior:
@@ -78,8 +113,13 @@ Expected behavior:
 Expected final answer shape:
 
 ```text
-요청한 작업은 차단되었습니다. 이 에이전트는 read-only 조사 도구만 사용할 수 있으며 DELETE/DROP 같은 변경 작업은 허용되지 않습니다.
-traceId: trace_...
+Final answer
+The destructive SQL request was rejected. StackSleuth only allows read-only
+investigation tools, and the Spring SQL guardrail returned SQL_WRITE_BLOCKED
+before any write was executed.
+
+Trace: trace_...
+Status: completed
 ```
 
 Dashboard shots to capture:
@@ -100,7 +140,8 @@ For CLI replay of a persisted run, use the trace ID returned by the agent
 service:
 
 ```bash
-ops-agent trace replay trace_...
+cd python-agent-service
+uv run ops-agent trace replay trace_...
 ```
 
 Expected behavior:
@@ -116,18 +157,24 @@ Why this matters:
 
 ## Recording Checklist
 
+- Prefer the sanitized checked-in frames under `docs/assets/` for README until
+  a clean manual recording is available.
 - Keep terminal font readable.
 - Show the command, not only the final answer.
 - Capture the dashboard timeline and guardrail panel.
 - Do not show API keys, `.env`, or credentials.
+- Do not show shell history, local account names, browser profile menus, or
+  unrelated desktop applications.
 - Keep the video under 90 seconds.
 - Use deterministic sample data so repeated recordings match.
+- Use the sample replay page (`http://localhost:5173/replay`) when recording
+  without an OpenAI API key.
 
 ## README GIF Placement
 
 Recommended order:
 
-1. Short terminal GIF near the top.
+1. Short terminal GIF or sanitized static terminal frame near the top.
 2. Architecture diagram below the pitch.
 3. Trace dashboard screenshot/GIF after the quickstart.
 4. Guardrail rejection screenshot near the safety section.

@@ -2,13 +2,21 @@
 
 Use this before linking the project in a resume, application, or recruiter message.
 
+## Current Repository Snapshot
+
+As of issue #7, the repository contains safe static demo frames, an architecture
+diagram, copyable examples, deterministic evals, and draft Korean article
+manuscripts with English summaries. External blog publication URLs and a real
+terminal GIF/video remain manual publication tasks and should not be claimed as
+complete until they exist.
+
 ## Repository
 
 - [ ] README explains the project in the first screen.
 - [ ] README says this is an agentic backend tool-calling system, not a chatbot.
 - [ ] README includes architecture diagram.
 - [ ] README includes quickstart.
-- [ ] README includes terminal demo GIF.
+- [ ] README includes terminal demo GIF or a clearly labeled sanitized static demo frame.
 - [ ] README includes trace dashboard screenshot or GIF.
 - [ ] README includes guardrail rejection example.
 - [ ] README links to all major docs.
@@ -75,8 +83,8 @@ Use this before linking the project in a resume, application, or recruiter messa
 
 ## Demo
 
-- [ ] `make up` starts local services.
-- [ ] `make demo` seeds deterministic data.
+- [ ] `docker compose --env-file .env -f infra/docker-compose.yml up -d --wait` starts local PostgreSQL fixtures.
+- [ ] `infra/scripts/verify-postgres.sh` verifies deterministic demo data.
 - [ ] CLI happy-path investigation works.
 - [ ] CLI guardrail rejection works.
 - [ ] Dashboard opens the returned trace.
