@@ -9,8 +9,8 @@
   <circle cx="156" cy="77" r="8" fill="#22c55e"/>
   <text x="190" y="83" font-family="SFMono-Regular, Menlo, Consolas, monospace" font-size="15" fill="#cbd5e1">StackSleuth demo terminal</text>
 
-  <g font-family="SFMono-Regular, Menlo, Consolas, monospace" font-size="23">
-    <text x="105" y="145" fill="#93c5fd">$ uv run ops-agent ask "Investigate errors from the last hour" --open-trace</text>
+  <g font-family="SFMono-Regular, Menlo, Consolas, monospace" font-size="21">
+    <text x="105" y="145" fill="#93c5fd">python-agent-service $ uv run ops-agent ask "Investigate errors" --open-trace</text>
     <text x="105" y="205" fill="#f8fafc">Final answer</text>
     <text x="105" y="245" fill="#d1d5db">Three recent errors point to a NullPointerException in ProfileService.</text>
     <text x="105" y="280" fill="#d1d5db">The evidence suggests user 42 has a null profile_img value.</text>

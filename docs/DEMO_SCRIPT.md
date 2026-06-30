@@ -10,15 +10,41 @@ Target length: 60 to 90 seconds.
 
 ## Setup Assumptions
 
-The current MVP uses explicit commands instead of a Makefile:
+The current MVP uses explicit commands instead of a Makefile. Use separate
+terminals for long-running services; `bootRun`, Uvicorn, and Vite each keep
+their process attached.
+
+Before recording a live `ops-agent ask` run, copy `.env.example` to `.env`, set
+local demo database passwords, and set `OPENAI_API_KEY` plus `AGENT_MODEL`.
+Replay-only recording at `http://localhost:5173/replay` does not need an
+OpenAI API key.
+
+Terminal 1: PostgreSQL and Spring tool server
 
 ```bash
 cp .env.example .env
 docker compose --env-file .env -f infra/docker-compose.yml up -d --wait
+set -a
+source .env
+set +a
 ./gradlew :spring-tool-server:bootRun
+```
+
+Terminal 2: FastAPI agent service
+
+```bash
 cd python-agent-service
+set -a
+source ../.env
+set +a
 uv run uvicorn app.main:app --reload --port 8000
-cd ../web-dashboard
+```
+
+Terminal 3: React trace dashboard
+
+```bash
+cd web-dashboard
+npm ci
 npm run dev
 ```
 

@@ -5,7 +5,7 @@
   "completedAt": "2026-06-29T00:00:01Z",
   "userRequest": "Show whether destructive SQL is blocked by the local read-only policy.",
   "model": "sample-replay",
-  "iterations": 1,
+  "iterations": 2,
   "toolCalls": [
     {
       "callId": "call-delete",
