@@ -69,9 +69,11 @@ Small maintenance fixes do not require a new article. They should update an exis
 | --- | --- | --- |
 | Terminal demo frame | `docs/assets/terminal-demo.svg` | Sanitized static frame checked in |
 | Trace dashboard screenshot | `docs/assets/dashboard-replay.svg` | Sanitized static frame checked in |
+| Actual trace dashboard screenshot | `docs/assets/dashboard-replay-actual.png` | Captured from React `/replay` route |
+| Actual trace dashboard GIF | `docs/assets/dashboard-replay-demo.gif` | Captured from React `/replay` route |
 | Guardrail rejection screenshot | `docs/assets/guardrail-rejection.svg` | Sanitized static frame checked in |
 | Architecture diagram | `docs/assets/architecture.svg` | Checked in |
-| Raw terminal GIF or video | External publication asset | Planned manual recording after checklist review |
+| Live terminal GIF or video | External publication asset | Planned manual recording after checklist review |
 
 Each manuscript must contain:
 
@@ -109,6 +111,7 @@ Evidence should be linked directly from a resume:
 
 - repository README
 - beginner tutorial
+- submission package
 - one architecture article
 - one safety or failure-mode article
 - live or recorded dashboard demonstration

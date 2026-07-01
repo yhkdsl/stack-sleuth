@@ -387,3 +387,37 @@ has been externally published.
 `docs/SKILLS_AND_DOCS.md`, `docs/assets/`, `examples/README.md`,
 `examples/traces/guardrail-rejection-redacted.json`, and
 `docs/articles/`.
+
+## 2026-07-01: Add a Submission Package and Real Replay Capture
+
+**Related work:** Post-MVP portfolio packaging
+
+**Problem:** The MVP README had safe synthetic frames, but an application
+reviewer benefits from one actual dashboard recording and a copy-ready
+submission page with the strongest links and project pitch.
+
+**Evidence:** The dashboard replay route works without OpenAI, Spring, or
+FastAPI because it renders bundled sample trace data. That makes it safe to
+capture as a real product surface without exposing credentials.
+
+**Root cause:** Safe demo assets and actual UI evidence had been treated as the
+same concern. Terminal recordings still carry local-state risk, while dashboard
+replay can be captured deterministically.
+
+**Decision:** Add `web-dashboard/scripts/capture-demo-assets.mjs` to build the
+dashboard, open `/replay`, capture `dashboard-replay-actual.png`, and convert a
+short Playwright recording to `dashboard-replay-demo.gif`. Add
+`docs/SUBMISSION_PACKAGE.md` with copy-ready links and application wording.
+
+**Verification:** The capture script built the dashboard, generated the PNG and
+GIF, and the PNG was visually inspected. The assets contain no `.env`, API key,
+credential, email, phone number, terminal history, or local account detail.
+
+**Lesson for readers:** A portfolio repository should separate safe replay
+evidence from live recording. Replay captures can be automated and versioned;
+live terminal videos should remain manual until the recording checklist is
+complete.
+
+**Documentation updated:** `README.md`, `docs/assets/README.md`,
+`docs/DEMO_SCRIPT.md`, `docs/CONTENT_STRATEGY.md`,
+`docs/SUBMISSION_PACKAGE.md`, and `web-dashboard/README.md`.

@@ -24,16 +24,20 @@ The project concept is simple: a developer types an operations question in a ter
 
 ## Demo Evidence
 
-The checked-in demo assets are sanitized synthetic frames derived from the sample trace and documented CLI output. They are intentionally not raw terminal or desktop recordings, so they do not expose `.env`, local account names, terminal history, API keys, database passwords, or private logs.
+The checked-in demo assets are sanitized and derived from local replay data. The
+dashboard GIF and screenshot are captured from the real React `/replay` route.
+The terminal frame is synthetic to avoid exposing shell history, local account
+names, `.env`, API keys, database passwords, or private logs.
 
 | Asset | Purpose |
 | --- | --- |
 | [Terminal demo frame](docs/assets/terminal-demo.svg) | Shows the `ops-agent ask` happy path output shape |
-| [Trace dashboard screenshot](docs/assets/dashboard-replay.svg) | Shows replay, tool timeline, evidence, metrics, and guardrail review |
+| [Trace dashboard GIF](docs/assets/dashboard-replay-demo.gif) | Shows the actual React replay dashboard interaction |
+| [Trace dashboard screenshot](docs/assets/dashboard-replay-actual.png) | Shows replay, tool timeline, evidence, metrics, and guardrail review |
 | [Guardrail rejection screenshot](docs/assets/guardrail-rejection.svg) | Shows `SQL_WRITE_BLOCKED` as a policy rejection |
 | [Architecture diagram](docs/assets/architecture.svg) | Shows CLI, FastAPI, OpenAI, Spring, data sources, trace store, and dashboard boundaries |
 
-![StackSleuth trace dashboard replay](docs/assets/dashboard-replay.svg)
+![StackSleuth trace dashboard replay demo](docs/assets/dashboard-replay-demo.gif)
 
 ## Architecture
 
@@ -58,6 +62,7 @@ executed.
 - [Frontend Dashboard Plan](docs/FRONTEND_DASHBOARD.md)
 - [Demo Script](docs/DEMO_SCRIPT.md)
 - [Submission Checklist](docs/SUBMISSION_CHECKLIST.md)
+- [Submission Package](docs/SUBMISSION_PACKAGE.md)
 - [Skills and Docs Checklist](docs/SKILLS_AND_DOCS.md)
 - [Beginner Tutorial](docs/TUTORIAL.md)
 - [Developer Experience Content Strategy](docs/CONTENT_STRATEGY.md)
@@ -124,7 +129,7 @@ mode renders checked-in trace data and does not call OpenAI, Spring, or FastAPI.
 | CLI | Initial implementation complete: `ask`, `--verbose`, `--open-trace`, `trace show`, `trace replay`, structured API errors, and tests |
 | React trace dashboard | Initial implementation complete: `/traces`, `/traces/{traceId}`, `/replay`, component tests, Playwright replay smoke test, and sample trace |
 | Evals and guardrail scenarios | Initial implementation complete: deterministic `evals/scenarios.yml`, runner, CI hook, and tests for happy path, SQL rejection, tool timeout, and max-iteration stop |
-| Demo and trace-replay assets | Sanitized static demo frames, architecture diagram, sample trace, and guardrail screenshot implemented; externally recorded GIF/video still planned |
+| Demo and trace-replay assets | Actual dashboard replay screenshot/GIF, sanitized terminal frame, architecture diagram, sample trace, and guardrail screenshot implemented; live terminal video still planned |
 | Beginner tutorial and DX content program | Tutorial, build log, content strategy, and Korean article drafts implemented; external publication evidence is still planned |
 
 ## Planned but Not Claimed
