@@ -41,3 +41,21 @@ npm run test:e2e
 The dashboard calls only `GET /agent/traces/{traceId}` for persisted trace
 pages. Replay mode uses bundled trace data and does not call OpenAI, Spring, or
 FastAPI.
+
+## Demo Asset Capture
+
+Regenerate the checked-in dashboard screenshot and GIF from the actual replay
+route. This requires `ffmpeg` on `PATH` for GIF conversion:
+
+```bash
+npm ci
+node scripts/capture-demo-assets.mjs
+```
+
+The script writes:
+
+- `../docs/assets/dashboard-replay-actual.png`
+- `../docs/assets/dashboard-replay-demo.gif`
+
+It records only the local `/replay` page backed by bundled sample data. It does
+not call OpenAI, Spring, or FastAPI.

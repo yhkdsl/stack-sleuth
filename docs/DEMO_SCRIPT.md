@@ -155,6 +155,15 @@ Why this matters:
 - Reviewers can inspect the core experience without configuring secrets.
 - Open-source users can understand the architecture quickly.
 
+Generate the checked-in dashboard screenshot and GIF from the real React replay
+route. This requires `ffmpeg` on `PATH`:
+
+```bash
+cd web-dashboard
+npm ci
+node scripts/capture-demo-assets.mjs
+```
+
 ## Recording Checklist
 
 - Prefer the sanitized checked-in frames under `docs/assets/` for README until
